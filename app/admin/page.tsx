@@ -20,6 +20,19 @@ export default async function AdminPage() {
 
   const tools = (
     <div className="flex flex-col gap-4">
+      <div className="rounded-3xl border border-border bg-background p-5 shadow-sm space-y-3">
+        <div>
+          <h3 className="text-sm font-bold text-foreground">Operational Analytics</h3>
+          <p className="text-xs text-muted">View event charts, conversion funnels, and export analytics CSV.</p>
+        </div>
+        <a
+          href="/admin/analytics"
+          className="inline-flex h-10 items-center justify-center rounded-2xl bg-accent px-4 text-xs font-semibold text-white hover:bg-accent-hover transition-colors"
+        >
+          Open Analytics Dashboard
+        </a>
+      </div>
+
       <AdminPanel
         title="Verify provider by id"
         description="Use when a provider isn't in the list (e.g. no coordinates set)."

@@ -6,11 +6,11 @@ import { recallLastTicketAction, type QueueActionState } from "./actions";
 
 type Ticket = {
   id: string;
-  ticket_number: string;
-  guest_name: string | null;
+  ticket_number: number;
+  guest_name?: string | null;
   user_email?: string | null;
   status: string;
-  updated_at?: string | null;
+  completed_at?: string | null;
 };
 
 const initial: QueueActionState = undefined;

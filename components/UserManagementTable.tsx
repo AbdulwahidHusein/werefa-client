@@ -181,7 +181,7 @@ export function UserManagementTable({ initialUsers }: { initialUsers: UserRow[] 
                       </td>
                     </tr>
                   );
-                })}
+                }))}
             </tbody>
           </table>
         </div>

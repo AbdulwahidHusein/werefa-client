@@ -117,8 +117,8 @@ export function QueueBoardClient({
   const completed = tickets
     .filter((t) => t.status === "completed")
     .sort((a, b) => {
-      const ta = a.updated_at ? Date.parse(a.updated_at) : 0;
-      const tb = b.updated_at ? Date.parse(b.updated_at) : 0;
+      const ta = a.completed_at ? Date.parse(a.completed_at) : 0;
+      const tb = b.completed_at ? Date.parse(b.completed_at) : 0;
       return tb - ta;
     });
   const recent = tickets

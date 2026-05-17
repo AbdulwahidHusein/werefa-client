@@ -154,3 +154,38 @@ export async function searchUsersAction(query: string) {
     return { ok: false, error: "Failed to search users." };
   }
 }
+
+export async function getDemandSummaryAction(since?: string, until?: string) {
+  await requireAdmin();
+  try {
+    const query: Record<string, string> = {};
+    if (since) query.since = since;
+    if (until) query.until = until;
+    const res = await apiFetch<any>("/admin/analytics/demand-summary", {
+      method: "GET",
+      query,
+    });
+    return { ok: true, data: res.data };
+  } catch (e) {
+    if (e instanceof ApiRequestError) return { ok: false, error: e.detail };
+    return { ok: false, error: "Failed to load demand summary." };
+  }
+}
+
+export async function getDemandCsvAction(since?: string, until?: string) {
+  await requireAdmin();
+  try {
+    const query: Record<string, string> = {};
+    if (since) query.since = since;
+    if (until) query.until = until;
+    const res = await apiFetch<any>("/admin/analytics/demand.csv", {
+      method: "GET",
+      query,
+    });
+    // If apiFetch returns the CSV content (string), it's perfect!
+    return { ok: true, csv: res };
+  } catch (e) {
+    if (e instanceof ApiRequestError) return { ok: false, error: e.detail };
+    return { ok: false, error: "Failed to export CSV." };
+  }
+}
