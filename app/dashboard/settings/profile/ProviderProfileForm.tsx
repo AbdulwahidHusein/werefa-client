@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { Info, HelpCircle, Save, X, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -83,6 +84,14 @@ export function ProviderProfileForm({ provider }: { provider: MyProvider }) {
           <span className="text-sm font-medium text-foreground">Verification Status</span>
           <StatusPill status={provider.verification_status} />
         </div>
+
+        <Link
+          href="/dashboard/settings/documents"
+          className="flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-semibold text-accent hover:bg-zinc-50 transition-colors animate-in fade-in"
+        >
+          <span>View Verification Documents</span>
+          <span className="text-muted">→</span>
+        </Link>
 
         {provider.verification_status === "pending" ? (
           <div className="flex items-start gap-2 bg-amber-50/50 border border-amber-100 text-amber-900 rounded-xl p-3 text-xs leading-normal">

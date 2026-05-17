@@ -2,6 +2,7 @@
 
 import { Check, X as XIcon } from "lucide-react";
 import { useActionState } from "react";
+import Link from "next/link";
 
 import {
   inlineRejectProvider,
@@ -40,7 +41,15 @@ export function ProviderRow({ provider }: { provider: Provider }) {
               {provider.id}
             </p>
           </div>
-          <StatusPill status={provider.verification_status} />
+          <div className="flex flex-col items-end gap-2.5">
+            <StatusPill status={provider.verification_status} />
+            <Link
+              href={`/admin/providers/${provider.id}`}
+              className="text-xs font-semibold text-accent hover:underline"
+            >
+              Review Documents →
+            </Link>
+          </div>
         </div>
 
         {state && "ok" in state && state.ok ? (
