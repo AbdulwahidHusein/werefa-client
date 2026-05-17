@@ -189,3 +189,16 @@ export async function getDemandCsvAction(since?: string, until?: string) {
     return { ok: false, error: "Failed to export CSV." };
   }
 }
+
+export async function getSystemHealthAction() {
+  await requireAdmin();
+  try {
+    const res = await apiFetch<any>("/admin/system/health", {
+      method: "GET",
+    });
+    return { ok: true, health: res };
+  } catch (e) {
+    if (e instanceof ApiRequestError) return { ok: false, error: e.detail };
+    return { ok: false, error: "System health check failed." };
+  }
+}
