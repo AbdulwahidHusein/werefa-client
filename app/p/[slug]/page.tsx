@@ -28,10 +28,13 @@ function formatPrice(p: string): string {
 
 export default async function ProviderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ serviceId?: string; inviteToken?: string; autoJoin?: string }>;
 }) {
   const { slug } = await params;
+  const sp = await searchParams;
 
   let provider: ProviderPublic;
   try {
@@ -128,6 +131,8 @@ export default async function ProviderPage({
                   serviceName={s.name}
                   isPrivate={provider.is_private}
                   joinable={joinable}
+                  autoJoin={sp?.autoJoin === "true" && sp?.serviceId === s.id}
+                  inviteToken={sp?.serviceId === s.id ? sp?.inviteToken : undefined}
                 />
               </li>
             ))}

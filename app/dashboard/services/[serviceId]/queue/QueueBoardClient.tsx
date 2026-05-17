@@ -2,6 +2,7 @@
 
 import { Clock, Loader2 } from "lucide-react";
 import { CallNextButton } from "./CallNextButton";
+import { GenerateInviteButton } from "./GenerateInviteButton";
 import { ServingActions } from "./ServingActions";
 import { WalkInForm } from "./WalkInForm";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -117,7 +118,12 @@ export function QueueBoardClient({
 
       <div className="flex flex-col gap-3">
         <CallNextButton serviceId={serviceId} waitingCount={waiting.length} />
-        <WalkInForm serviceId={serviceId} />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <WalkInForm serviceId={serviceId} />
+          </div>
+          <GenerateInviteButton serviceId={serviceId} />
+        </div>
       </div>
 
       <section className="mt-6">

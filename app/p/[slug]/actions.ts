@@ -17,6 +17,7 @@ export async function joinQueueAction(
 ): Promise<JoinState> {
   await requireMe();
   const code = String(formData.get("access_code") ?? "").trim();
+  const inviteToken = formData.get("invite_token");
   if (code.length > 6) {
     return { error: "Access code must be 6 characters or fewer.", code };
   }
@@ -24,7 +25,10 @@ export async function joinQueueAction(
   try {
     await apiFetch<QueueEntryPublic>(`/service-items/${serviceId}/join`, {
       method: "POST",
-      body: { access_code: code === "" ? null : code },
+      body: { 
+        access_code: code === "" ? null : code,
+        invite_token: inviteToken ? String(inviteToken) : null 
+      },
     });
   } catch (err) {
     if (err instanceof ApiRequestError) {

@@ -14,15 +14,19 @@ export function JoinButton({
   serviceName,
   isPrivate,
   joinable,
+  autoJoin,
+  inviteToken,
 }: {
   serviceId: string;
   serviceName: string;
   isPrivate: boolean;
   joinable: boolean;
+  autoJoin?: boolean;
+  inviteToken?: string;
 }) {
   const action = joinQueueAction.bind(null, serviceId);
   const [state, formAction, pending] = useActionState(action, initial);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoJoin || false);
 
   if (!joinable) {
     return (
@@ -49,6 +53,7 @@ export function JoinButton({
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Join the line">
         <form action={formAction} className="flex flex-col gap-4 pb-4">
+          {inviteToken ? <input type="hidden" name="invite_token" value={inviteToken} /> : null}
           <p className="text-sm text-muted">
             Adding you to the line for{" "}
             <strong className="text-foreground">{serviceName}</strong>.
