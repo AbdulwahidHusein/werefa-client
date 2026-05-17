@@ -5,6 +5,7 @@ import {
   ShieldCheck,
   User,
   Bell,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -46,6 +47,16 @@ export default async function AccountPage() {
           <Bell className="h-5 w-5 text-muted" aria-hidden />
           <span className="flex-1 text-sm font-medium">
             Notification preferences
+          </span>
+          <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
+        </Link>
+        <Link
+          href="/account/strikes"
+          className="flex items-center gap-3 border-t border-border px-4 py-3.5 transition-colors hover:bg-surface"
+        >
+          <ShieldAlert className="h-5 w-5 text-muted" aria-hidden />
+          <span className="flex-1 text-sm font-medium">
+            Strikes & standing
           </span>
           <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
         </Link>

@@ -106,3 +106,51 @@ export async function inlineRejectProvider(
 ): Promise<AdminState> {
   return rejectProvider(id);
 }
+
+export async function suspendUserAction(id: string, reason: string) {
+  await requireAdmin();
+  if (!UUID_RE.test(id)) return { ok: false, error: "User id must be a valid UUID." };
+  try {
+    const res = await apiFetch<any>(`/admin/users/${id}/suspend`, {
+      method: "POST",
+      body: { reason },
+    });
+    revalidatePath("/admin");
+    return { ok: true, user: res };
+  } catch (e) {
+    if (e instanceof ApiRequestError) return { ok: false, error: e.detail };
+    return { ok: false, error: "Something went wrong. Try again." };
+  }
+}
+
+export async function unsuspendUserAction(id: string) {
+  await requireAdmin();
+  if (!UUID_RE.test(id)) return { ok: false, error: "User id must be a valid UUID." };
+  try {
+    const res = await apiFetch<any>(`/admin/users/${id}/unsuspend`, {
+      method: "POST",
+    });
+    revalidatePath("/admin");
+    return { ok: true, user: res };
+  } catch (e) {
+    if (e instanceof ApiRequestError) return { ok: false, error: e.detail };
+    return { ok: false, error: "Something went wrong. Try again." };
+  }
+}
+
+export async function searchUsersAction(query: string) {
+  await requireAdmin();
+  try {
+    if (query.trim().length < 3) {
+      const res = await apiFetch<any>("/users?limit=100", { method: "GET" });
+      return { ok: true, users: res.data };
+    }
+    const res = await apiFetch<any[]>(`/admin/users/search?q=${encodeURIComponent(query)}`, {
+      method: "GET",
+    });
+    return { ok: true, users: res };
+  } catch (e) {
+    if (e instanceof ApiRequestError) return { ok: false, error: e.detail };
+    return { ok: false, error: "Failed to search users." };
+  }
+}

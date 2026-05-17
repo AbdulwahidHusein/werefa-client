@@ -8,9 +8,15 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { listAllProviders } from "@/lib/dal";
+import { apiFetch } from "@/lib/api/server";
 
 export default async function AdminPage() {
-  const providers = await listAllProviders();
+  const [providers, usersRes] = await Promise.all([
+    listAllProviders(),
+    apiFetch<any>("/users?limit=100", { method: "GET" }),
+  ]);
+
+  const initialUsers = usersRes?.data || [];
 
   const tools = (
     <div className="flex flex-col gap-4">
@@ -53,7 +59,11 @@ export default async function AdminPage() {
         subtitle="Review and act on providers"
         back="/account"
       />
-      <AdminTabs providers={providers} toolsSlot={tools} />
+      <AdminTabs
+        providers={providers}
+        initialUsers={initialUsers}
+        toolsSlot={tools}
+      />
     </AppShell>
   );
 }

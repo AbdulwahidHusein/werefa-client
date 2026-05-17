@@ -4,22 +4,34 @@ import { useState } from "react";
 
 import { ProviderRow } from "./ProviderRow";
 import type { components } from "@/lib/api/schema";
+import { UserManagementTable } from "@/components/UserManagementTable";
 
 type Provider = components["schemas"]["ProviderDiscoveryPublic"];
+type UserRow = {
+  id: string;
+  email: string;
+  phone_number: string | null;
+  is_active: boolean;
+  is_suspended: boolean;
+  user_type: string;
+};
 
-type Tab = "pending" | "verified" | "rejected" | "tools";
+type Tab = "pending" | "verified" | "rejected" | "users" | "tools";
 
 const TAB_LABELS: Record<Exclude<Tab, "tools">, string> = {
   pending: "Pending",
   verified: "Verified",
   rejected: "Rejected",
+  users: "Users",
 };
 
 export function AdminTabs({
   providers,
+  initialUsers,
   toolsSlot,
 }: {
   providers: Provider[];
+  initialUsers: UserRow[];
   toolsSlot: React.ReactNode;
 }) {
   const [tab, setTab] = useState<Tab>("pending");
@@ -28,6 +40,7 @@ export function AdminTabs({
     pending: providers.filter((p) => p.verification_status === "pending").length,
     verified: providers.filter((p) => p.verification_status === "verified").length,
     rejected: providers.filter((p) => p.verification_status === "rejected").length,
+    users: initialUsers.length,
     tools: 0,
   };
 
@@ -36,7 +49,7 @@ export function AdminTabs({
   return (
     <div className="flex flex-col gap-4">
       <div className="-mx-1 flex gap-1 overflow-x-auto rounded-2xl bg-surface p-1">
-        {(["pending", "verified", "rejected", "tools"] as const).map((t) => {
+        {(["pending", "verified", "rejected", "users", "tools"] as const).map((t) => {
           const isActive = tab === t;
           return (
             <button
@@ -66,6 +79,8 @@ export function AdminTabs({
 
       {tab === "tools" ? (
         toolsSlot
+      ) : tab === "users" ? (
+        <UserManagementTable initialUsers={initialUsers} />
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-8 text-center">
           <p className="text-sm font-medium">
