@@ -1,3 +1,5 @@
+import { API_URL } from "../env";
+
 export class ApiError extends Error {
   status: number;
   detail: string;
@@ -26,6 +28,12 @@ function buildPath(path: string, query?: Query): string {
   const qs = search.toString();
   const clean = path.startsWith("/") ? path : `/${path}`;
   return `/api${clean}${qs ? `?${qs}` : ""}`;
+}
+
+export function getWsUrl(path: string, token: string): string {
+  const base = API_URL.replace(/^http/, "ws");
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${clean}?token=${token}`;
 }
 
 async function readError(res: Response): Promise<string> {

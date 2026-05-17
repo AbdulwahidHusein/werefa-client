@@ -7,11 +7,9 @@ import { cancelTicketAction, type CancelState } from "../actions";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { api } from "@/lib/api/client";
 import type { components } from "@/lib/api/schema";
+import { useTicketStream } from "@/hooks/useTicketStream";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
-type Tickets = components["schemas"]["QueueEntriesPublic"];
-
-const POLL_MS = 5000;
 const initial: CancelState = undefined;
 
 function relativeTime(iso: string | null | undefined): string | null {
@@ -27,10 +25,8 @@ function relativeTime(iso: string | null | undefined): string | null {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-export function LiveTicket({ initialTicket }: { initialTicket: Ticket }) {
-  const [ticket, setTicket] = useState<Ticket>(initialTicket);
-  const [terminal, setTerminal] = useState<string | null>(null);
-  const [pollError, setPollError] = useState<string | null>(null);
+export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; token: string | null }) {
+  const { ticket, wsState } = useTicketStream(initialTicket, token);
 
   const cancelAction = cancelTicketAction.bind(
     null,
@@ -42,46 +38,7 @@ export function LiveTicket({ initialTicket }: { initialTicket: Ticket }) {
     initial,
   );
 
-  useEffect(() => {
-    if (terminal) return;
-    let stopped = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    async function tick() {
-      try {
-        const res = await api<Tickets>("/service-items/me/tickets");
-        if (stopped) return;
-        const found = res.data.find((t) => t.id === ticket.id);
-        if (found) {
-          setTicket(found);
-          setPollError(null);
-        } else {
-          setTerminal(
-            ticket.status === "serving"
-              ? "completed"
-              : ticket.status === "waiting"
-                ? "cancelled"
-                : ticket.status,
-          );
-        }
-      } catch (err) {
-        if (!stopped) {
-          setPollError(err instanceof Error ? err.message : "Lost connection");
-        }
-      } finally {
-        if (!stopped) {
-          timeoutId = setTimeout(tick, POLL_MS);
-        }
-      }
-    }
-    timeoutId = setTimeout(tick, POLL_MS);
-    return () => {
-      stopped = true;
-      if (timeoutId !== null) clearTimeout(timeoutId);
-    };
-  }, [ticket.id, ticket.status, terminal]);
-
-  const status = terminal ?? ticket.status;
+  const status = ticket.status;
   const isServing = status === "serving";
   const isCallable = status === "waiting";
 
@@ -118,9 +75,9 @@ export function LiveTicket({ initialTicket }: { initialTicket: Ticket }) {
         </div>
       )}
 
-      {pollError ? (
+      {wsState === "connecting" || wsState === "error" ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">
-          Connection paused — {pollError}. Retrying.
+          {wsState === "connecting" ? "Connecting to live updates..." : "Connection paused — Lost connection. Retrying."}
         </p>
       ) : null}
 
@@ -144,7 +101,7 @@ export function LiveTicket({ initialTicket }: { initialTicket: Ticket }) {
       ) : null}
 
       <p className="text-center text-[10px] text-muted">
-        Live · refreshes every {POLL_MS / 1000}s
+        {wsState === "connected" ? "Live · connected to real-time updates" : "Live stream offline"}
       </p>
     </div>
   );

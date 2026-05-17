@@ -2,6 +2,7 @@ import { LiveTicket } from "./LiveTicket";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { listMyTickets } from "@/lib/dal";
+import { getSessionToken } from "@/lib/session";
 
 export default async function TicketDetailPage({
   params,
@@ -11,6 +12,7 @@ export default async function TicketDetailPage({
   const { id } = await params;
   const tickets = await listMyTickets();
   const ticket = tickets.find((t) => t.id === id);
+  const token = await getSessionToken();
 
   return (
     <AppShell>
@@ -24,7 +26,7 @@ export default async function TicketDetailPage({
           </p>
         </div>
       ) : (
-        <LiveTicket initialTicket={ticket} />
+        <LiveTicket initialTicket={ticket} token={token} />
       )}
     </AppShell>
   );
