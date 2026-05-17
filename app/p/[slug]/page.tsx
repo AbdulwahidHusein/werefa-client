@@ -84,6 +84,9 @@ export default async function ProviderPage({
                 {rating.rating_avg.toFixed(1)}
               </span>
               <span>({rating.ratings_count})</span>
+              <a href={`/p/${provider.slug}/reviews`} className="ml-2 text-xs text-accent hover:underline">
+                View reviews
+              </a>
             </span>
           ) : null}
           {provider.latitude != null && provider.longitude != null ? (
