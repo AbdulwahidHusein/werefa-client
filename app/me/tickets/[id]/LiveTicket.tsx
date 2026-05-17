@@ -11,6 +11,8 @@ import type { components } from "@/lib/api/schema";
 import { useTicketStream } from "@/hooks/useTicketStream";
 import { useBroadcasts } from "@/hooks/useBroadcasts";
 import { BroadcastBanner } from "@/components/BroadcastBanner";
+import { useLocationTracking } from "@/hooks/useLocationTracking";
+import { LocationShareStatus } from "@/components/LocationShareStatus";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
 const initial: CancelState = undefined;
@@ -50,6 +52,12 @@ export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; to
   const isServing = status === "serving";
   const isCallable = status === "waiting";
 
+  const { permission, status: locStatus, lastPingTime, errorMsg, requestPermission } = useLocationTracking({
+    serviceId: ticket.service_item_id,
+    ticketId: ticket.id,
+    enabled: ticket.status === "waiting" && !!ticket.user_id,
+  });
+
   return (
     <div className="flex flex-col gap-4">
       {/* Broadcast Announcements */}
@@ -84,6 +92,15 @@ export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; to
             Joined {relativeTime(ticket.joined_at) ?? "—"}
           </p>
         </div>
+      )}
+
+      {ticket.status === "waiting" && !!ticket.user_id && (
+        <LocationShareStatus
+          status={locStatus}
+          lastPingTime={lastPingTime}
+          errorMsg={errorMsg}
+          onRequestPermission={requestPermission}
+        />
       )}
 
       {wsState === "connecting" || wsState === "error" ? (

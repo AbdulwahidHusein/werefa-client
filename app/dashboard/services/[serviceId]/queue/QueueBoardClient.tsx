@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Clock, Loader2, Megaphone } from "lucide-react";
 import { CallNextButton } from "./CallNextButton";
+import { RecallButton } from "./RecallButton";
 import { GenerateInviteButton } from "./GenerateInviteButton";
 import { ServingActions } from "./ServingActions";
 import { WalkInForm } from "./WalkInForm";
@@ -14,6 +15,7 @@ import { useBroadcasts } from "@/hooks/useBroadcasts";
 import { BroadcastModal } from "@/components/BroadcastModal";
 import { QueuePauseToggle } from "@/components/QueuePauseToggle";
 import { AccessCodeDisplay } from "@/components/AccessCodeDisplay";
+import { TicketLivenessStatus, TicketLivenessDetailsPanel } from "@/components/TicketLivenessStatus";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
 type MyService = { id: string; name: string };
@@ -31,26 +33,40 @@ function relativeTime(iso: string | null | undefined): string | null {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-function TicketRow({ t }: { t: Ticket }) {
+function TicketRow({ t, serviceId }: { t: Ticket; serviceId: string }) {
+  const [expanded, setExpanded] = useState(false);
   const isWalkIn = t.source !== "remote_app";
+
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-border bg-background p-4">
-      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
-        <span className="text-lg font-semibold">#{t.ticket_number}</span>
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <StatusPill status={t.status} />
-          {isWalkIn ? <StatusPill status="closed">Walk-in</StatusPill> : null}
+    <li className="flex flex-col rounded-2xl border border-border bg-background p-4 transition-all">
+      <div
+        className="flex items-center gap-3 cursor-pointer select-none"
+        onClick={() => { if (!isWalkIn) setExpanded(!expanded); }}
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
+          <span className="text-lg font-semibold">#{t.ticket_number}</span>
         </div>
-        {t.guest_name ? (
-          <p className="mt-1 truncate text-sm font-medium">{t.guest_name}</p>
-        ) : null}
-        <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted">
-          <Clock className="h-3 w-3" aria-hidden />
-          {relativeTime(t.joined_at) ?? "—"}
-        </p>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusPill status={t.status} />
+            {isWalkIn ? <StatusPill status="closed">Walk-in</StatusPill> : null}
+            {!isWalkIn && (
+              <TicketLivenessStatus livenessState={(t as any).liveness_state} />
+            )}
+          </div>
+          {t.guest_name ? (
+            <p className="mt-1 truncate text-sm font-medium">{t.guest_name}</p>
+          ) : null}
+          <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted">
+            <Clock className="h-3 w-3" aria-hidden />
+            Joined {relativeTime(t.joined_at) ?? "—"}
+          </p>
+        </div>
       </div>
+
+      {expanded && !isWalkIn && (
+        <TicketLivenessDetailsPanel serviceId={serviceId} ticketId={t.id} />
+      )}
     </li>
   );
 }
@@ -98,6 +114,13 @@ export function QueueBoardClient({
   const waiting = tickets
     .filter((t) => t.status === "waiting")
     .sort(sortByJoined);
+  const completed = tickets
+    .filter((t) => t.status === "completed")
+    .sort((a, b) => {
+      const ta = a.updated_at ? Date.parse(a.updated_at) : 0;
+      const tb = b.updated_at ? Date.parse(b.updated_at) : 0;
+      return tb - ta;
+    });
   const recent = tickets
     .filter((t) => ["completed", "no_show", "cancelled"].includes(t.status))
     .sort((a, b) => -sortByJoined(a, b))
@@ -155,6 +178,7 @@ export function QueueBoardClient({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col gap-3">
           <CallNextButton serviceId={serviceId} waitingCount={waiting.length} />
+          <RecallButton serviceId={serviceId} lastCompletedTicket={completed[0]} />
           <div className="flex gap-3">
             <div className="flex-1">
               <WalkInForm serviceId={serviceId} />
@@ -225,7 +249,7 @@ export function QueueBoardClient({
         ) : (
           <ul className="flex flex-col gap-3">
             {waiting.map((t) => (
-              <TicketRow key={t.id} t={t} />
+              <TicketRow key={t.id} t={t} serviceId={serviceId} />
             ))}
           </ul>
         )}
@@ -238,7 +262,7 @@ export function QueueBoardClient({
           </summary>
           <ul className="mt-3 flex flex-col gap-3">
             {recent.map((t) => (
-              <TicketRow key={t.id} t={t} />
+              <TicketRow key={t.id} t={t} serviceId={serviceId} />
             ))}
           </ul>
         </details>

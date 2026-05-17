@@ -199,3 +199,22 @@ export async function rotateAccessCodeAction(providerId: string, newCode: string
   }
 }
 
+export async function recallLastTicketAction(
+  serviceId: string,
+  _prev: QueueActionState,
+  _fd: FormData,
+): Promise<QueueActionState> {
+  try {
+    const t = await apiFetch<QueueEntry>(
+      `/service-items/${serviceId}/recall`,
+      { method: "POST" }
+    );
+    revalidatePath(`/dashboard/services/${serviceId}/queue`);
+    const who = t.guest_name ? ` — ${t.guest_name}` : "";
+    return { ok: true, message: `Recalled #${t.ticket_number}${who}.` };
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { error: err.detail };
+    return { error: "Could not recall last completed ticket. Try again." };
+  }
+}
+
