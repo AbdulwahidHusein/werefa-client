@@ -170,3 +170,32 @@ export async function resumeProviderQueueAction(providerId: string) {
   }
 }
 
+export async function getAccessCodeAction(providerId: string) {
+  try {
+    const res = await apiFetch<{ access_code: string | null }>(
+      `/providers/${providerId}/access-code`,
+      { method: "GET" }
+    );
+    return { ok: true, accessCode: res.access_code };
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { ok: false, error: err.detail };
+    return { ok: false, error: "Failed to load access code." };
+  }
+}
+
+export async function rotateAccessCodeAction(providerId: string, newCode: string) {
+  try {
+    await apiFetch(`/providers/${providerId}`, {
+      method: "PATCH",
+      body: {
+        access_code: newCode,
+      },
+    });
+    revalidatePath(`/dashboard/services/[serviceId]/queue`);
+    return { ok: true, accessCode: newCode };
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { ok: false, error: err.detail };
+    return { ok: false, error: "Failed to rotate access code." };
+  }
+}
+

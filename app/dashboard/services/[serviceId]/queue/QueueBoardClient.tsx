@@ -13,6 +13,7 @@ import type { components } from "@/lib/api/schema";
 import { useBroadcasts } from "@/hooks/useBroadcasts";
 import { BroadcastModal } from "@/components/BroadcastModal";
 import { QueuePauseToggle } from "@/components/QueuePauseToggle";
+import { AccessCodeDisplay } from "@/components/AccessCodeDisplay";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
 type MyService = { id: string; name: string };
@@ -151,13 +152,19 @@ export function QueueBoardClient({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <CallNextButton serviceId={serviceId} waitingCount={waiting.length} />
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <WalkInForm serviceId={serviceId} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-3">
+          <CallNextButton serviceId={serviceId} waitingCount={waiting.length} />
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <WalkInForm serviceId={serviceId} />
+            </div>
+            <GenerateInviteButton serviceId={serviceId} />
           </div>
-          <GenerateInviteButton serviceId={serviceId} />
+        </div>
+
+        <div>
+          <AccessCodeDisplay providerId={providerId} />
         </div>
       </div>
 
