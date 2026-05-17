@@ -4,6 +4,7 @@ import { Bell, Clock, X as XIcon } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 
 import { cancelTicketAction, type CancelState } from "../actions";
+import { ReviewForm } from "./ReviewForm";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { api } from "@/lib/api/client";
 import type { components } from "@/lib/api/schema";
@@ -98,6 +99,10 @@ export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; to
             {cancelPending ? "Cancelling…" : "Cancel my ticket"}
           </button>
         </form>
+      ) : null}
+
+      {status === "completed" ? (
+        <ReviewForm ticketId={ticket.id} />
       ) : null}
 
       <p className="text-center text-[10px] text-muted">
