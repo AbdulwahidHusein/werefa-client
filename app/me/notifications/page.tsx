@@ -1,10 +1,9 @@
 import { Bell } from "lucide-react";
 
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { apiFetch } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
-import { NotificationsList } from "@/components/NotificationsList";
+import { NotificationsInbox } from "./NotificationsInbox";
 
 type NotificationsPublic = components["schemas"]["NotificationsPublic"];
 type Notification = components["schemas"]["NotificationPublic"];
@@ -15,10 +14,21 @@ export default async function NotificationsPage() {
     query: { limit: 50 },
   });
   const notifications: Notification[] = res.data;
+  const unreadCount =
+    typeof res.unread_count === "number"
+      ? res.unread_count
+      : notifications.filter((n) => !n.read_at).length;
 
   return (
-    <AppShell>
-      <PageHeader title="Inbox" subtitle="Updates about your tickets" />
+    <>
+    <PageHeader
+      title="Inbox"
+      subtitle={
+        unreadCount > 0
+          ? `${unreadCount} unread · updates about your tickets`
+          : "Updates about your tickets"
+      }
+    />
 
       {notifications.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
@@ -31,8 +41,8 @@ export default async function NotificationsPage() {
           </p>
         </div>
       ) : (
-        <NotificationsList initialNotifications={notifications} />
+        <NotificationsInbox initialNotifications={notifications} />
       )}
-    </AppShell>
+  </>
   );
 }

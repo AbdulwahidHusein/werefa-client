@@ -8,6 +8,7 @@ export const metadata = {
 
 function ResetPasswordFormWrapper() {
   return (
+    <>
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Reset password</h1>
@@ -21,6 +22,7 @@ function ResetPasswordFormWrapper() {
         <ResetPasswordForm />
       </Suspense>
     </div>
+  </>
   );
 }
 

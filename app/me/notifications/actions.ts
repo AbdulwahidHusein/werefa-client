@@ -9,6 +9,7 @@ export async function markAsReadAction(notificationId: string) {
       method: "POST",
     });
     revalidatePath("/me/notifications");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {
     if (err instanceof ApiRequestError) {
@@ -28,6 +29,7 @@ export async function markAllAsReadAction(unreadIds: string[]) {
       )
     );
     revalidatePath("/me/notifications");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: "Failed to mark all as read." };

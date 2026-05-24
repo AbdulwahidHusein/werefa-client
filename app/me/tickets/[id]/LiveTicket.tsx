@@ -1,16 +1,17 @@
 "use client";
 
 import { Bell, Clock, X as XIcon } from "lucide-react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState } from "react";
 
 import { cancelTicketAction, type CancelState } from "../actions";
 import { ReviewForm } from "./ReviewForm";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { api } from "@/lib/api/client";
+import { TicketQueueInsights } from "@/components/TicketQueueInsights";
 import type { components } from "@/lib/api/schema";
+import type { TicketQueueSnapshot } from "@/lib/ticket-snapshot";
 import { useTicketStream } from "@/hooks/useTicketStream";
-import { useBroadcasts } from "@/hooks/useBroadcasts";
-import { BroadcastBanner } from "@/components/BroadcastBanner";
+import { useTicketSnapshot } from "@/hooks/useTicketSnapshot";
+import { QueueLineChatPanel } from "@/components/QueueLineChatPanel";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
 import { LocationShareStatus } from "@/components/LocationShareStatus";
 
@@ -30,13 +31,22 @@ function relativeTime(iso: string | null | undefined): string | null {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; token: string | null }) {
+export function LiveTicket({
+  initialTicket,
+  initialSnapshot,
+  token,
+}: {
+  initialTicket: Ticket;
+  initialSnapshot: TicketQueueSnapshot | null;
+  token: string | null;
+}) {
   const { ticket, wsState, client } = useTicketStream(initialTicket, token);
-  const { broadcasts } = useBroadcasts({
-    providerId: (ticket as any).provider_id as string | undefined,
-    token,
+  const { snapshot, loading: snapshotLoading } = useTicketSnapshot({
+    serviceItemId: ticket.service_item_id,
+    ticketId: ticket.id,
     wsClient: client,
   });
+  const displaySnapshot = snapshot ?? initialSnapshot;
 
   const cancelAction = cancelTicketAction.bind(
     null,
@@ -52,16 +62,24 @@ export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; to
   const isServing = status === "serving";
   const isCallable = status === "waiting";
 
-  const { permission, status: locStatus, lastPingTime, errorMsg, requestPermission } = useLocationTracking({
-    serviceId: ticket.service_item_id,
-    ticketId: ticket.id,
-    enabled: ticket.status === "waiting" && !!ticket.user_id,
-  });
+  const { status: locStatus, lastPingTime, errorMsg, requestPermission } =
+    useLocationTracking({
+      serviceId: ticket.service_item_id,
+      ticketId: ticket.id,
+      enabled: ticket.status === "waiting" && !!ticket.user_id,
+    });
+
+  const title =
+    displaySnapshot?.biz_name ?? "Your visit";
+  const lineName = displaySnapshot?.service_name;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Broadcast Announcements */}
-      <BroadcastBanner broadcasts={broadcasts} />
+    <div className="flex flex-col gap-4 pb-24">
+      <TicketQueueInsights
+        snapshot={displaySnapshot}
+        status={status}
+        loading={snapshotLoading && !displaySnapshot}
+      />
 
       {isServing ? (
         <div className="flex flex-col items-center gap-3 rounded-3xl bg-emerald-600 p-8 text-center text-white shadow-lg">
@@ -69,23 +87,25 @@ export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; to
             <Bell className="h-7 w-7" />
           </div>
           <p className="text-xs font-medium uppercase tracking-widest opacity-90">
-            You&apos;re up
+            You&apos;re up — {title}
           </p>
-          <p className="text-3xl font-bold tracking-tight">
-            Head to the counter
-          </p>
+          <p className="text-3xl font-bold tracking-tight">Head to the counter</p>
+          {lineName ? (
+            <p className="text-sm opacity-90">{lineName}</p>
+          ) : null}
           <div className="mt-1 rounded-full bg-white/15 px-3 py-1 text-sm font-medium">
             Ticket #{ticket.ticket_number}
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-background p-8 text-center">
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-background p-8 text-center">
           <p className="text-xs uppercase tracking-widest text-muted">
-            Your ticket
+            Your ticket · {title}
           </p>
-          <p className="text-6xl font-bold tracking-tight">
-            #{ticket.ticket_number}
-          </p>
+          {lineName ? (
+            <p className="text-sm font-medium text-muted">{lineName}</p>
+          ) : null}
+          <p className="text-6xl font-bold tracking-tight">#{ticket.ticket_number}</p>
           <StatusPill status={status} />
           <p className="inline-flex items-center gap-1 text-xs text-muted">
             <Clock className="h-3 w-3" aria-hidden />
@@ -94,18 +114,20 @@ export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; to
         </div>
       )}
 
-      {ticket.status === "waiting" && !!ticket.user_id && (
+      {ticket.status === "waiting" && !!ticket.user_id ? (
         <LocationShareStatus
           status={locStatus}
           lastPingTime={lastPingTime}
           errorMsg={errorMsg}
           onRequestPermission={requestPermission}
         />
-      )}
+      ) : null}
 
       {wsState === "connecting" || wsState === "error" ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">
-          {wsState === "connecting" ? "Connecting to live updates..." : "Connection paused — Lost connection. Retrying."}
+          {wsState === "connecting"
+            ? "Connecting to live updates…"
+            : "Connection paused — retrying…"}
         </p>
       ) : null}
 
@@ -128,13 +150,21 @@ export function LiveTicket({ initialTicket, token }: { initialTicket: Ticket; to
         </form>
       ) : null}
 
-      {status === "completed" ? (
-        <ReviewForm ticketId={ticket.id} />
-      ) : null}
+      {status === "completed" ? <ReviewForm ticketId={ticket.id} /> : null}
 
       <p className="text-center text-[10px] text-muted">
-        {wsState === "connected" ? "Live · connected to real-time updates" : "Live stream offline"}
+        {wsState === "connected"
+          ? "Live · queue updates on"
+          : "Live updates offline — numbers may be stale"}
       </p>
+
+      <QueueLineChatPanel
+        serviceItemId={ticket.service_item_id}
+        providerId={ticket.provider_id ?? undefined}
+        businessName={displaySnapshot?.biz_name}
+        currentUserId={ticket.user_id ?? undefined}
+        wsClient={client}
+      />
     </div>
   );
 }

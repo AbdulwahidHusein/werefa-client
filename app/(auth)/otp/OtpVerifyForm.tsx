@@ -79,6 +79,7 @@ export function OtpVerifyForm({ email }: { email: string }) {
   const isExpired = timeLeft === 0;
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {errorMessage ? (
         <div className="flex items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 text-rose-950 p-3.5 text-xs font-semibold animate-in fade-in">
@@ -166,5 +167,6 @@ export function OtpVerifyForm({ email }: { email: string }) {
         </Link>
       </div>
     </form>
+  </>
   );
 }

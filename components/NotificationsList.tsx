@@ -25,12 +25,14 @@ function relativeTime(iso: string | null | undefined): string | null {
 
 export function NotificationsList({
   initialNotifications,
+  onReadChange,
 }: {
   initialNotifications: Notification[];
+  onReadChange?: () => void;
 }) {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [readIds, setReadIds] = useState<string[]>(
-    initialNotifications.filter((n) => n.status === "read").map((n) => n.id)
+    initialNotifications.filter((n) => n.read_at != null).map((n) => n.id),
   );
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
   const [isBulkLoading, setIsBulkLoading] = useState(false);
@@ -57,6 +59,8 @@ export function NotificationsList({
       // Revert optimistic update
       setReadIds((prev) => prev.filter((x) => x !== id));
       showToast(res.error || "Failed to mark as read");
+    } else {
+      onReadChange?.();
     }
   }
 
@@ -76,6 +80,8 @@ export function NotificationsList({
       // Revert optimistic update for all unread IDs
       setReadIds((prev) => prev.filter((id) => !unreadIds.includes(id)));
       showToast(res.error || "Failed to mark all as read");
+    } else {
+      onReadChange?.();
     }
   }
 

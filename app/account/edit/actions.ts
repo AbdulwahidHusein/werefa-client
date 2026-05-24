@@ -6,9 +6,44 @@ import { requireMe } from "@/lib/dal";
 
 export type ProfileState = { error?: string; success?: boolean } | undefined;
 export type PasswordState = { error?: string; success?: boolean } | undefined;
+export type ImageUploadState = { error?: string; success?: boolean } | undefined;
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+\d{7,15}$/;
+
+export async function uploadUserProfileImageAction(
+  _prev: ImageUploadState,
+  formData: FormData,
+): Promise<ImageUploadState> {
+  await requireMe();
+  const file = formData.get("file") as File | null;
+  if (!file?.size) {
+    return { error: "Please choose an image." };
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: "Image must be 5MB or smaller." };
+  }
+  if (!IMAGE_TYPES.includes(file.type)) {
+    return { error: "Use JPEG, PNG, or WebP." };
+  }
+
+  const body = new FormData();
+  body.append("file", file);
+
+  try {
+    await apiFetch("/users/me/profile-image", { method: "POST", body });
+    revalidatePath("/account");
+    revalidatePath("/account/edit");
+    return { success: true };
+  } catch (err) {
+    if (err instanceof ApiRequestError) {
+      return { error: err.detail || "Upload failed." };
+    }
+    return { error: "Upload failed. Try again." };
+  }
+}
 
 export async function updateProfileAction(
   _prev: ProfileState,

@@ -1,4 +1,3 @@
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { apiFetch } from "@/lib/api/server";
 import { UserManagementTable } from "@/components/UserManagementTable";
@@ -13,15 +12,15 @@ export default async function AdminUsersPage() {
   }
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title="Admin User Search"
         subtitle="Search users by phone, view standings, active strikes, and suspend accounts"
         back="/admin"
       />
-      <div className="rounded-3xl border border-border bg-background p-6 shadow-sm">
+      <div className="rounded-lg border border-border bg-background p-6">
         <UserManagementTable initialUsers={initialUsers} />
       </div>
-    </AppShell>
+  </>
   );
 }

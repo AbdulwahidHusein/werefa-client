@@ -22,7 +22,7 @@ export function ProviderCard({ p }: { p: Discovery }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="truncate text-base font-semibold tracking-tight">
+            <h3 className="truncate text-lg font-semibold tracking-tight">
               {p.biz_name}
             </h3>
             {status ? <StatusPill status={status} /> : null}

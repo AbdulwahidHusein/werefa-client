@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
 import { getMe } from "@/lib/dal";
-import { selectProvider } from "@/lib/session";
+import { providerHomePath } from "@/lib/provider-routes";
+import { selectProvider, selectService, setAppRole } from "@/lib/session";
 
 export type SetupState =
   | {
@@ -92,6 +93,7 @@ export async function setupBusinessAction(
       },
     });
     await selectProvider(created.id);
+    await setAppRole("provider");
   } catch (err) {
     if (err instanceof ApiRequestError) {
       return { error: err.detail, fields };
@@ -99,15 +101,29 @@ export async function setupBusinessAction(
     return { error: "Something went wrong. Try again.", fields };
   }
 
-  redirect("/dashboard");
+  redirect(await providerHomePath());
 }
 
 export async function manageBusinessAction(id: string): Promise<void> {
   await selectProvider(id);
-  redirect("/dashboard/services");
+  redirect(await providerHomePath());
 }
 
 export async function selectBusinessAction(id: string): Promise<void> {
   await selectProvider(id);
   redirect("/dashboard");
+}
+
+export async function openQueueForServiceAction(
+  serviceId: string,
+): Promise<void> {
+  await selectService(serviceId);
+  redirect(`/dashboard/services/${serviceId}/queue`);
+}
+
+/** Persist last-opened queue line (Server Action only — not for RSC render). */
+export async function rememberActiveServiceAction(
+  serviceId: string,
+): Promise<void> {
+  await selectService(serviceId);
 }

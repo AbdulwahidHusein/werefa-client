@@ -4,7 +4,14 @@ import { redirect } from "next/navigation";
 
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
-import { clearSession, setSessionToken } from "@/lib/session";
+import {
+  homePathForUser,
+  resolveAppRole,
+} from "@/lib/navigation";
+import { providerHomePath } from "@/lib/provider-routes";
+import { rethrowNavigationError } from "@/lib/rethrow-navigation";
+import { listMyProviders } from "@/lib/dal";
+import { clearSession, selectProvider, setAppRole, setSessionToken } from "@/lib/session";
 
 export type AuthState =
   | {
@@ -54,7 +61,21 @@ export async function loginAction(
   try {
     const token = await exchangePassword(email, password);
     await setSessionToken(token.access_token);
+    const me = await apiFetch<components["schemas"]["UserPublic"]>("/users/me", {
+      method: "GET",
+    });
+    const role = resolveAppRole(me);
+    await setAppRole(role);
+    if (role === "provider") {
+      const businesses = await listMyProviders();
+      if (businesses.length > 0) {
+        await selectProvider(businesses[0].id);
+      }
+      redirect(await providerHomePath());
+    }
+    redirect(homePathForUser(me));
   } catch (err) {
+    rethrowNavigationError(err);
     if (err instanceof ApiRequestError) {
       return {
         error:
@@ -66,8 +87,6 @@ export async function loginAction(
     }
     return { error: "Something went wrong. Try again.", fields: { email } };
   }
-
-  redirect("/");
 }
 
 export async function signupAction(
@@ -99,7 +118,21 @@ export async function signupAction(
     });
     const token = await exchangePassword(email, password);
     await setSessionToken(token.access_token);
+    const me = await apiFetch<components["schemas"]["UserPublic"]>("/users/me", {
+      method: "GET",
+    });
+    const role = resolveAppRole(me);
+    await setAppRole(role);
+    if (role === "provider") {
+      const businesses = await listMyProviders();
+      if (businesses.length > 0) {
+        await selectProvider(businesses[0].id);
+      }
+      redirect(await providerHomePath());
+    }
+    redirect(homePathForUser(me));
   } catch (err) {
+    rethrowNavigationError(err);
     if (err instanceof ApiRequestError) {
       return { error: err.detail, fields: { email, full_name } };
     }
@@ -108,8 +141,6 @@ export async function signupAction(
       fields: { email, full_name },
     };
   }
-
-  redirect("/");
 }
 
 export async function logoutAction(): Promise<void> {
@@ -193,6 +224,7 @@ export async function resetPasswordAction(
       "/login?message=Password reset successful. Please log in with your new password.",
     );
   } catch (err) {
+    rethrowNavigationError(err);
     if (err instanceof ApiRequestError) {
       return {
         error:

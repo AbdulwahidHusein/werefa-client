@@ -70,10 +70,10 @@ export function BroadcastModal({
       );
 
       if (!result.ok) {
-        setErrorMessage(result.error || "Failed to post announcement.");
+        setErrorMessage(result.error || "Failed to post message.");
       } else {
         // Successful creation! Show success message
-        setSuccessMessage("Announcement posted successfully!");
+        setSuccessMessage("Posted to the line.");
         setMessage("");
         setSeverity("info");
         setSelectedServices(["ALL"]);
@@ -108,8 +108,8 @@ export function BroadcastModal({
             <Megaphone className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-semibold leading-none">Broadcast Announcement</h3>
-            <p className="text-xs text-muted mt-1">Send a message to customers waiting in line.</p>
+            <h3 className="text-base font-semibold leading-none">Post to line</h3>
+            <p className="text-xs text-muted mt-1">Your message appears in the line chat on every waiting ticket.</p>
           </div>
         </div>
 
@@ -225,7 +225,7 @@ export function BroadcastModal({
                   Sending...
                 </>
               ) : (
-                "Send Announcement"
+                "Post message"
               )}
             </Button>
           </div>

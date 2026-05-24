@@ -1,0 +1,43 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
+import { SeekerShell } from "./SeekerShell";
+
+const AUTH_PREFIXES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/otp",
+];
+
+function isAuthPath(pathname: string): boolean {
+  return AUTH_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
+function usesDeskShell(pathname: string): boolean {
+  return (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin")
+  );
+}
+
+export function ConditionalSeekerShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+
+  if (isAuthPath(pathname) || usesDeskShell(pathname)) {
+    return <>{children}</>;
+  }
+
+  const showNav =
+    !pathname.startsWith("/join") && !pathname.startsWith("/test-token");
+
+  return <SeekerShell showNav={showNav}>{children}</SeekerShell>;
+}

@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
 import { ServiceForm } from "../ServiceForm";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getMyProvider, getMyService } from "@/lib/dal";
 
@@ -22,13 +21,13 @@ export default async function EditServicePage({
   if (!service) notFound();
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title="Edit service"
         subtitle={service.name}
         back="/dashboard/services"
       />
       <ServiceForm service={service} />
-    </AppShell>
+  </>
   );
 }

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 
 import { AddMemberModal } from "./AddMemberModal";
 import { MembersList } from "./MembersList";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { apiFetch } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
@@ -31,8 +30,8 @@ export default async function MembersPage() {
   const isOwner = provider.membership_role === "owner";
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title="Members"
         subtitle={provider.biz_name}
         back="/dashboard"
@@ -54,6 +53,6 @@ export default async function MembersPage() {
         canManage={isOwner}
         items={items}
       />
-    </AppShell>
+  </>
   );
 }

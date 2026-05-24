@@ -19,6 +19,7 @@ export function useLocationTracking({
 
   const enabledRef = useRef(enabled);
   enabledRef.current = enabled;
+  const pingInFlightRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -53,6 +54,8 @@ export function useLocationTracking({
     let intervalId: NodeJS.Timeout;
 
     async function sendPing(pos: GeolocationPosition) {
+      if (pingInFlightRef.current) return;
+      pingInFlightRef.current = true;
       try {
         await api(
           `/service-items/${serviceId}/tickets/${ticketId}/position`,
@@ -72,6 +75,8 @@ export function useLocationTracking({
         console.error("Failed to submit location ping", err);
         setErrorMsg(err.message || "Failed to update location");
         setStatus("error");
+      } finally {
+        pingInFlightRef.current = false;
       }
     }
 

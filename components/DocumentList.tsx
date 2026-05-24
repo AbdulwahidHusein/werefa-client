@@ -9,6 +9,7 @@ export type ProviderDocument = {
   provider_id: string;
   filename: string;
   created_at?: string | null;
+  url?: string;
 };
 
 function parseDocumentInfo(filename: string) {
@@ -34,28 +35,27 @@ export function DocumentList({
 }) {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  async function handleDownload(docId: string, filename: string) {
+  async function handleDownload(
+    docId: string,
+    filename: string,
+    directUrl?: string,
+  ) {
     setDownloadingId(docId);
     try {
-      // 1. Fetch file using our proxy route
-      const response = await fetch(`/api/providers/${providerId}/documents/${docId}`);
-      if (!response.ok) throw new Error("Download failed");
-
-      const blob = await response.blob();
-      
-      // 2. Extract clean name if parsed
       const { cleanName } = parseDocumentInfo(filename);
+      const href =
+        directUrl ??
+        `/api/providers/${providerId}/documents/${docId}`;
 
-      // 3. Trigger standard browser download
-      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
+      link.href = href;
       link.setAttribute("download", cleanName);
+      if (directUrl) link.target = "_blank";
+      link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       alert("Failed to download document. Please try again.");
     } finally {
       setDownloadingId(null);
@@ -113,7 +113,7 @@ export function DocumentList({
 
               <button
                 type="button"
-                onClick={() => handleDownload(doc.id, doc.filename)}
+                onClick={() => handleDownload(doc.id, doc.filename, doc.url)}
                 disabled={isDownloading}
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border bg-background hover:bg-surface text-muted hover:text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Download file"

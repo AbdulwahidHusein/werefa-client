@@ -2,7 +2,6 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
-  ShieldCheck,
   User,
   Bell,
   ShieldAlert,
@@ -11,7 +10,6 @@ import Link from "next/link";
 
 import { logoutAction } from "../(auth)/actions";
 import { CopyId } from "../dashboard/CopyId";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { requireMe } from "@/lib/dal";
 
@@ -21,8 +19,8 @@ export default async function AccountPage() {
   const isProvider = me.user_type === "provider";
 
   return (
-    <AppShell>
-      <PageHeader title="Account" subtitle={me.email} />
+    <>
+    <PageHeader title="Account" subtitle={me.email} />
 
       <section className="rounded-2xl border border-border bg-background p-4">
         <p className="text-xs font-medium text-muted">Your user ID</p>
@@ -60,34 +58,13 @@ export default async function AccountPage() {
           </span>
           <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
         </Link>
-        {isProvider ? (
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-3 border-t border-border px-4 py-3.5 transition-colors hover:bg-surface"
-          >
-            <LayoutDashboard className="h-5 w-5 text-muted" aria-hidden />
-            <span className="flex-1 text-sm font-medium">
-              Business dashboard
-            </span>
-            <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
-          </Link>
-        ) : (
+        {!isProvider ? (
           <Link
             href="/dashboard/setup"
             className="flex items-center gap-3 border-t border-border px-4 py-3.5 transition-colors hover:bg-surface"
           >
             <LayoutDashboard className="h-5 w-5 text-muted" aria-hidden />
             <span className="flex-1 text-sm font-medium">Run a business</span>
-            <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
-          </Link>
-        )}
-        {me.is_superuser ? (
-          <Link
-            href="/admin"
-            className="flex items-center gap-3 border-t border-border px-4 py-3.5 transition-colors hover:bg-surface"
-          >
-            <ShieldCheck className="h-5 w-5 text-muted" aria-hidden />
-            <span className="flex-1 text-sm font-medium">Admin tools</span>
             <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
           </Link>
         ) : null}
@@ -102,6 +79,6 @@ export default async function AccountPage() {
           Log out
         </button>
       </form>
-    </AppShell>
+  </>
   );
 }

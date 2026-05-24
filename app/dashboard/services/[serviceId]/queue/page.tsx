@@ -1,14 +1,20 @@
 import { redirect } from "next/navigation";
 
+import { RememberActiveService } from "@/components/RememberActiveService";
 import { QueueBoardClient } from "./QueueBoardClient";
-import { AppShell } from "@/components/AppShell";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
-import { getMyProvider, getMyService, listMyServices } from "@/lib/dal";
+import { getMe, getMyProvider, getMyService, listMyServices } from "@/lib/dal";
+import { getServiceLineStats } from "@/lib/provider-routes";
 import { getSessionToken } from "@/lib/session";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
 type Tickets = components["schemas"]["QueueEntriesPublic"];
+type ServiceItemPublic = components["schemas"]["ServiceItemPublic"] & {
+  allow_vip?: boolean;
+  is_paused?: boolean;
+  line_chat_enabled?: boolean;
+};
 
 export default async function QueueBoardPage({
   params,
@@ -17,17 +23,20 @@ export default async function QueueBoardPage({
 }) {
   const { serviceId } = await params;
 
-  const [provider, service, allServices, token] = await Promise.all([
+  const [provider, service, allServices, token, me] = await Promise.all([
     getMyProvider(),
     getMyService(serviceId),
     listMyServices(),
-    getSessionToken()
+    getSessionToken(),
+    getMe(),
   ]);
   if (!provider) redirect("/dashboard");
   if (provider.verification_status !== "verified") {
     redirect("/dashboard/services");
   }
   if (!service) redirect("/dashboard/services");
+
+  const serviceLineStats = await getServiceLineStats(allServices);
 
   let tickets: Ticket[] = [];
   let loadError: string | null = null;
@@ -46,9 +55,10 @@ export default async function QueueBoardPage({
   }
 
   return (
-    <AppShell>
+    <>
+      <RememberActiveService serviceId={serviceId} />
       {loadError ? (
-        <p className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-danger">
+        <p className="mb-4 rounded-lg border border-border bg-surface p-4 text-sm text-danger">
           {loadError}
         </p>
       ) : null}
@@ -60,10 +70,16 @@ export default async function QueueBoardPage({
           initialTickets={tickets}
           token={token}
           providerId={provider.id}
+          businessName={provider.biz_name}
           allServices={allServices}
-          initialIsPaused={provider.is_paused ?? false}
+          initialIsPaused={(service as ServiceItemPublic).is_paused ?? false}
+          allowVip={(service as ServiceItemPublic).allow_vip ?? false}
+          lineChatEnabled={(service as ServiceItemPublic).line_chat_enabled ?? true}
+          isOwner={provider.membership_role === "owner"}
+          currentUserId={me?.id}
+          serviceLineStats={serviceLineStats}
         />
       ) : null}
-    </AppShell>
+    </>
   );
 }

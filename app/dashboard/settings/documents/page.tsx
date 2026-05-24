@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { DocumentList, type ProviderDocument } from "@/components/DocumentList";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getMyProvider, requireMe } from "@/lib/dal";
 import { apiFetch } from "@/lib/api/server";
@@ -24,8 +23,8 @@ export default async function ProviderDocumentsPage() {
   }
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title="Business Verification"
         subtitle="Uploads & active KYC documents"
         back="/dashboard/settings/profile"
@@ -50,6 +49,6 @@ export default async function ProviderDocumentsPage() {
           <DocumentList documents={documents} providerId={provider.id} />
         </section>
       </div>
-    </AppShell>
+  </>
   );
 }

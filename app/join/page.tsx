@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/AppShell";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
-// Local type — not yet in auto-generated schema
+
 type JoinInviteResolved = {
   token: string;
   slug: string;
@@ -19,14 +18,12 @@ export default async function JoinDeepLinkPage({
 
   if (!token) {
     return (
-      <AppShell>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-xl font-semibold">Invalid Invite Link</p>
-          <p className="mt-2 text-sm text-muted">
-            The link you followed is missing the invite token.
-          </p>
-        </div>
-      </AppShell>
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-xl font-semibold">Invalid invite link</p>
+        <p className="mt-2 text-sm text-muted">
+          The link you followed is missing the invite token.
+        </p>
+      </div>
     );
   }
 
@@ -34,10 +31,10 @@ export default async function JoinDeepLinkPage({
   let error: string | null = null;
 
   try {
-    const res = await apiFetch<JoinInviteResolved>(`/join-invites/resolve?token=${token}`, {
-      method: "GET",
-    });
-    resolved = res;
+    resolved = await apiFetch<JoinInviteResolved>(
+      `/join-invites/resolve?token=${token}`,
+      { method: "GET" },
+    );
   } catch (err) {
     if (err instanceof ApiRequestError) {
       error = err.detail;
@@ -48,16 +45,14 @@ export default async function JoinDeepLinkPage({
 
   if (error || !resolved) {
     return (
-      <AppShell>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-xl font-semibold text-danger">Invite Error</p>
-          <p className="mt-2 text-sm text-muted">{error}</p>
-        </div>
-      </AppShell>
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-xl font-semibold text-danger">Invite error</p>
+        <p className="mt-2 text-sm text-muted">{error}</p>
+      </div>
     );
   }
 
-  // Redirect to provider page with autoJoin parameters
-  const redirectUrl = `/p/${resolved.slug}?serviceId=${resolved.service_item_id}&inviteToken=${token}&autoJoin=true`;
-  redirect(redirectUrl);
+  redirect(
+    `/p/${resolved.slug}?serviceId=${resolved.service_item_id}&inviteToken=${token}&autoJoin=true`,
+  );
 }

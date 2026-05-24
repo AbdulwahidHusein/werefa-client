@@ -14,6 +14,7 @@ export function OtpRequestForm() {
   const [state, action, pending] = useActionState(requestOtpAction, initial);
 
   return (
+    <>
     <form action={action} className="flex flex-col gap-4">
       <Field
         label="Email Address"
@@ -55,5 +56,6 @@ export function OtpRequestForm() {
         </Link>
       </div>
     </form>
+  </>
   );
 }

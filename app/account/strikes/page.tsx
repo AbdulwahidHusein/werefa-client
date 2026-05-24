@@ -1,4 +1,3 @@
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { requireMe } from "@/lib/dal";
 import { apiFetch } from "@/lib/api/server";
@@ -14,16 +13,16 @@ export default async function AccountStrikesPage() {
   });
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title="Standing & Strikes"
         subtitle="Manage active queue warnings and suspension status"
         back="/account"
       />
 
-      <div className="rounded-3xl border border-border bg-background p-6 shadow-sm">
+      <div className="rounded-lg border border-border bg-background p-6">
         <StrikesDisplay summary={summary} />
       </div>
-    </AppShell>
+  </>
   );
 }

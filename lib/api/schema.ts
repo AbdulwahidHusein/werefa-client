@@ -823,6 +823,10 @@ export interface components {
              * Format: uuid
              */
             author_user_id: string;
+            /** Author Role */
+            author_role?: string;
+            /** Author Label */
+            author_label?: string;
             /** Created At */
             created_at?: string | null;
         };
@@ -1260,6 +1264,8 @@ export interface components {
              * Format: uuid
              */
             service_item_id: string;
+            /** Provider Id */
+            provider_id?: string | null;
             /** User Id */
             user_id?: string | null;
             /** Joined At */

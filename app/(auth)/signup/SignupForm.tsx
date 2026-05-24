@@ -46,7 +46,7 @@ export function SignupForm() {
         <span className="mb-1.5 block text-sm font-medium text-foreground">
           I am a…
         </span>
-        <div className="flex gap-1 rounded-2xl bg-surface p-1">
+        <div className="flex gap-1 rounded-lg border border-border p-1">
           {(
             [
               ["customer", "Customer"],
@@ -57,9 +57,9 @@ export function SignupForm() {
               type="button"
               key={value}
               onClick={() => setUserType(value)}
-              className={`flex h-10 flex-1 items-center justify-center rounded-xl text-sm font-medium transition-colors ${
+              className={`flex h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${
                 userType === value
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-accent text-accent-foreground"
                   : "text-muted hover:text-foreground"
               }`}
               aria-pressed={userType === value}

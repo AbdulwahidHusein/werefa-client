@@ -31,6 +31,11 @@ const PALETTE: Record<string, Palette> = {
   paused: "amber",
   // notification kinds
   you_are_next: "amber",
+  head_to_counter: "blue",
+  now_serving: "emerald",
+  liveness_ping_request: "blue",
+  liveness_stale: "rose",
+  line_chat_update: "indigo",
   called: "emerald",
 };
 

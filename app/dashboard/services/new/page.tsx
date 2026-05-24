@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { ServiceForm } from "../ServiceForm";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getMyProvider } from "@/lib/dal";
 
@@ -13,12 +12,12 @@ export default async function NewServicePage() {
   }
 
   return (
-    <AppShell>
-      <PageHeader title="New service" back="/dashboard/services" />
+    <>
+    <PageHeader title="New service" back="/dashboard/services" />
       <p className="-mt-2 mb-4 text-sm text-muted">
         Customers will see this option when joining your queue.
       </p>
       <ServiceForm />
-    </AppShell>
+  </>
   );
 }

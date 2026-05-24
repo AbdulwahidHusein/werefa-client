@@ -75,6 +75,7 @@ export async function walkInAction(
   formData: FormData,
 ): Promise<QueueActionState> {
   const guest_name = String(formData.get("guest_name") ?? "").trim();
+  const is_vip = formData.get("is_vip") === "true";
   if (guest_name.length > 100) {
     return { error: "Name must be 100 characters or fewer." };
   }
@@ -83,15 +84,34 @@ export async function walkInAction(
       `/service-items/${serviceId}/walk-in`,
       {
         method: "POST",
-        body: { guest_name: guest_name === "" ? null : guest_name },
+        body: { guest_name: guest_name === "" ? null : guest_name, is_vip },
       },
     );
     revalidatePath(`/dashboard/services/${serviceId}/queue`);
     const who = guest_name ? ` — ${guest_name}` : "";
-    return { ok: true, message: `Added #${t.ticket_number}${who}.` };
+    const vipLabel = is_vip ? " [VIP]" : "";
+    return { ok: true, message: `Added #${t.ticket_number}${who}${vipLabel}.` };
   } catch (err) {
     if (err instanceof ApiRequestError) return { error: err.detail };
     return { error: "Could not add walk-in. Try again." };
+  }
+}
+
+export async function setTicketPriorityAction(
+  serviceId: string,
+  ticketId: string,
+  priority: number,
+): Promise<QueueActionState> {
+  try {
+    await apiFetch<QueueEntry>(
+      `/service-items/${serviceId}/tickets/${ticketId}/priority`,
+      { method: "PATCH", body: { priority } },
+    );
+    revalidatePath(`/dashboard/services/${serviceId}/queue`);
+    return { ok: true, message: priority > 0 ? "Ticket upgraded to VIP." : "VIP removed from ticket." };
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { error: err.detail };
+    return { error: "Could not update ticket priority. Try again." };
   }
 }
 

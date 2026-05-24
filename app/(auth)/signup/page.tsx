@@ -3,6 +3,7 @@ import { SignupForm } from "./SignupForm";
 
 export default function SignupPage() {
   return (
+    <>
     <div className="flex flex-1 flex-col">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">
         Create your account
@@ -16,5 +17,6 @@ export default function SignupPage() {
         By creating an account you agree to our terms.
       </p>
     </div>
+  </>
   );
 }

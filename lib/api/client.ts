@@ -33,7 +33,7 @@ function buildPath(path: string, query?: Query): string {
 export function getWsUrl(path: string, token: string): string {
   const base = API_URL.replace(/^http/, "ws");
   const clean = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${clean}?token=${token}`;
+  return `${base}/api/v1${clean}?token=${token}`;
 }
 
 async function readError(res: Response): Promise<string> {

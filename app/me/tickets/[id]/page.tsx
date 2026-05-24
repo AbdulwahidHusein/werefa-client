@@ -1,8 +1,9 @@
 import { LiveTicket } from "./LiveTicket";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { listMyTickets } from "@/lib/dal";
+import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import { getSessionToken } from "@/lib/session";
+import type { TicketQueueSnapshot } from "@/lib/ticket-snapshot";
 
 export default async function TicketDetailPage({
   params,
@@ -14,9 +15,23 @@ export default async function TicketDetailPage({
   const ticket = tickets.find((t) => t.id === id);
   const token = await getSessionToken();
 
+  let snapshot: TicketQueueSnapshot | null = null;
+  if (ticket) {
+    try {
+      snapshot = await apiFetch<TicketQueueSnapshot>(
+        `/service-items/${ticket.service_item_id}/tickets/${ticket.id}/snapshot`,
+        { method: "GET" },
+      );
+    } catch (err) {
+      if (!(err instanceof ApiRequestError)) throw err;
+    }
+  }
+
+  const pageTitle = snapshot?.biz_name ?? "Your ticket";
+
   return (
-    <AppShell>
-      <PageHeader title="Ticket" back="/me/tickets" />
+    <>
+      <PageHeader title={pageTitle} subtitle={snapshot?.service_name} back="/me/tickets" />
 
       {!ticket ? (
         <div className="rounded-2xl border border-dashed border-border p-8 text-center">
@@ -26,8 +41,12 @@ export default async function TicketDetailPage({
           </p>
         </div>
       ) : (
-        <LiveTicket initialTicket={ticket} token={token} />
+        <LiveTicket
+          initialTicket={ticket}
+          initialSnapshot={snapshot}
+          token={token}
+        />
       )}
-    </AppShell>
+    </>
   );
 }

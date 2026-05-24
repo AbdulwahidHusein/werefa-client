@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { testTokenAction } from "./actions";
 import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
@@ -13,8 +12,8 @@ export default function TestTokenPage() {
   );
 
   return (
-    <AppShell>
-      <PageHeader title="Test Token Debugger" back="/admin" />
+    <>
+    <PageHeader title="Test Token Debugger" back="/admin" />
 
       <div className="max-w-2xl mx-auto mt-6">
         <div className="rounded-2xl border border-border bg-background p-6 shadow-sm">
@@ -70,6 +69,6 @@ export default function TestTokenPage() {
           )}
         </div>
       </div>
-    </AppShell>
+  </>
   );
 }

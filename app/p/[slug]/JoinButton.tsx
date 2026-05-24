@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { Crown } from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
 
 import { joinQueueAction, type JoinState } from "./actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Sheet } from "@/components/ui/Sheet";
+import { readCachedLocation } from "@/lib/geo";
 
 const initial: JoinState = undefined;
 
@@ -13,6 +15,7 @@ export function JoinButton({
   serviceId,
   serviceName,
   isPrivate,
+  allowVip,
   joinable,
   autoJoin,
   inviteToken,
@@ -20,6 +23,7 @@ export function JoinButton({
   serviceId: string;
   serviceName: string;
   isPrivate: boolean;
+  allowVip?: boolean;
   joinable: boolean;
   autoJoin?: boolean;
   inviteToken?: string;
@@ -27,6 +31,15 @@ export function JoinButton({
   const action = joinQueueAction.bind(null, serviceId);
   const [state, formAction, pending] = useActionState(action, initial);
   const [open, setOpen] = useState(autoJoin || false);
+  const [coords, setCoords] = useState<{ lat: string; lng: string } | null>(null);
+  const [useVip, setUseVip] = useState(false);
+
+  useEffect(() => {
+    const cached = readCachedLocation();
+    if (cached) {
+      setCoords({ lat: String(cached.lat), lng: String(cached.lng) });
+    }
+  }, [open]);
 
   if (!joinable) {
     return (
@@ -34,7 +47,7 @@ export function JoinButton({
         type="button"
         disabled
         title="This business isn't accepting customers right now"
-        className="h-10 shrink-0 cursor-not-allowed rounded-xl bg-zinc-100 px-4 text-sm font-medium text-muted"
+        className="h-11 shrink-0 cursor-not-allowed rounded-lg bg-surface px-4 text-sm font-medium text-muted"
       >
         Join
       </button>
@@ -46,14 +59,22 @@ export function JoinButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="h-10 shrink-0 cursor-pointer rounded-xl bg-accent px-4 text-sm font-medium text-accent-foreground hover:bg-indigo-700"
+        className="h-11 shrink-0 cursor-pointer rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
       >
         Join
       </button>
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Join the line">
         <form action={formAction} className="flex flex-col gap-4 pb-4">
-          {inviteToken ? <input type="hidden" name="invite_token" value={inviteToken} /> : null}
+          {inviteToken ? (
+            <input type="hidden" name="invite_token" value={inviteToken} />
+          ) : null}
+          {coords ? (
+            <>
+              <input type="hidden" name="latitude" value={coords.lat} />
+              <input type="hidden" name="longitude" value={coords.lng} />
+            </>
+          ) : null}
           <p className="text-sm text-muted">
             Adding you to the line for{" "}
             <strong className="text-foreground">{serviceName}</strong>.
@@ -73,7 +94,7 @@ export function JoinButton({
             />
           ) : (
             <details>
-              <summary className="cursor-pointer text-xs text-muted">
+              <summary className="cursor-pointer text-sm text-muted">
                 Have an access code?
               </summary>
               <div className="mt-2">
@@ -91,10 +112,50 @@ export function JoinButton({
             </details>
           )}
 
+          {allowVip ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+              <button
+                type="button"
+                onClick={() => setUseVip((v) => !v)}
+                className="flex w-full items-center justify-between gap-2 text-sm"
+              >
+                <span className="flex items-center gap-1.5 font-medium text-amber-800">
+                  <Crown className="h-4 w-4 text-amber-500" />
+                  I have a VIP code
+                </span>
+                <span className="text-xs text-amber-600">{useVip ? "▲ hide" : "▼ enter code"}</span>
+              </button>
+              {useVip ? (
+                <div className="mt-2">
+                  <Field
+                    label="VIP code"
+                    name="vip_code"
+                    maxLength={20}
+                    autoCapitalize="characters"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    placeholder="e.g., GOLD2024"
+                  />
+                  <p className="mt-1 text-xs text-amber-700 leading-relaxed">
+                    VIP customers are served before the regular queue.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {state?.error ? (
-            <p className="text-sm text-danger" role="alert">
-              {state.error}
-            </p>
+            <div role="alert">
+              <p className="text-sm text-danger">{state.error}</p>
+              {state.error.toLowerCase().includes("active ticket") ? (
+                <a
+                  href="/me/tickets"
+                  className="mt-1 inline-block text-sm text-accent underline"
+                >
+                  View your active ticket →
+                </a>
+              ) : null}
+            </div>
           ) : null}
 
           <Button type="submit" disabled={pending} aria-busy={pending}>

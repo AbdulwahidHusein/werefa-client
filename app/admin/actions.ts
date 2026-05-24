@@ -37,13 +37,20 @@ async function verifyProvider(id: string): Promise<AdminState> {
   }
 }
 
-async function rejectProvider(id: string): Promise<AdminState> {
+async function rejectProvider(
+  id: string,
+  reason?: string,
+): Promise<AdminState> {
   await requireAdmin();
   if (!UUID_RE.test(id)) return { error: "Provider id must be a valid UUID." };
+  const trimmed = reason?.trim() ?? "";
+  if (!trimmed) {
+    return { error: "A rejection reason is required." };
+  }
   try {
     const p = await apiFetch<ProviderPublic>(
       `/admin/providers/${id}/reject`,
-      { method: "POST" },
+      { method: "POST", body: { reason: trimmed } },
     );
     revalidatePath("/admin");
     return { ok: true, message: `${p.biz_name} → ${p.verification_status}` };
@@ -81,7 +88,9 @@ export async function rejectProviderAction(
   _prev: AdminState,
   formData: FormData,
 ): Promise<AdminState> {
-  return rejectProvider(readId(formData, "provider_id"));
+  const id = readId(formData, "provider_id");
+  const reason = String(formData.get("reason") ?? "");
+  return rejectProvider(id, reason);
 }
 
 export async function unblockUserAction(
@@ -102,9 +111,10 @@ export async function inlineVerifyProvider(
 export async function inlineRejectProvider(
   id: string,
   _prev: AdminState,
-  _fd: FormData,
+  formData: FormData,
 ): Promise<AdminState> {
-  return rejectProvider(id);
+  const reason = String(formData.get("reason") ?? "");
+  return rejectProvider(id, reason);
 }
 
 export async function suspendUserAction(id: string, reason: string) {

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { ConditionalSeekerShell } from "@/components/layouts/ConditionalSeekerShell";
 import { InstallPrompt } from "@/components/InstallPrompt";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -20,7 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      {children}
+      <ConditionalSeekerShell>{children}</ConditionalSeekerShell>
       <InstallPrompt />
     </QueryClientProvider>
   );

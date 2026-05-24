@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
@@ -24,8 +23,8 @@ export default async function UserProfilePage({
   }
 
   return (
-    <AppShell>
-      <PageHeader title="User Profile" back="/admin/users" />
+    <>
+    <PageHeader title="User Profile" back="/admin/users" />
 
       <div className="max-w-2xl mx-auto mt-6">
         <div className="rounded-2xl border border-border bg-background overflow-hidden shadow-sm">
@@ -72,6 +71,6 @@ export default async function UserProfilePage({
           </div>
         </div>
       </div>
-    </AppShell>
+  </>
   );
 }

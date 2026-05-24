@@ -7,6 +7,7 @@ export const metadata = {
 
 export default function ForgotPasswordPage() {
   return (
+    <>
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Forgot password?</h1>
@@ -17,5 +18,6 @@ export default function ForgotPasswordPage() {
       </div>
       <ForgotPasswordForm />
     </div>
+  </>
   );
 }

@@ -6,8 +6,13 @@ type Ticket = components["schemas"]["QueueEntryPublic"];
 
 export function useTicketStream(initialTicket: Ticket, token: string | null) {
   const [ticket, setTicket] = useState<Ticket>(initialTicket);
-  
-  const path = token ? `/tickets/${initialTicket.id}/stream` : null;
+
+  // Sync state when the server component re-renders after a server action revalidation.
+  useEffect(() => {
+    setTicket(initialTicket);
+  }, [initialTicket]);
+
+  const path = token ? `/ws/tickets/${initialTicket.id}/stream` : null;
   const { state: wsState, client } = useWebSocket(path, token);
 
   useEffect(() => {

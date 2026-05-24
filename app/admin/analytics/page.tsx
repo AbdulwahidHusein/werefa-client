@@ -1,4 +1,3 @@
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { apiFetch } from "@/lib/api/server";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
@@ -20,13 +19,13 @@ export default async function AdminAnalyticsPage() {
   }
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title="Admin Analytics"
         subtitle="Operational funnel demand matrix and conversion stats"
         back="/admin"
       />
       <AnalyticsDashboard initialData={initialData} />
-    </AppShell>
+  </>
   );
 }

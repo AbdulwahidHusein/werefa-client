@@ -8,6 +8,8 @@ export type Broadcast = {
   severity: "info" | "warning" | "critical";
   created_at: string;
   service_item_id: string | null;
+  author_role?: "owner" | "staff" | string;
+  author_label?: string;
 };
 
 export function useBroadcasts({
@@ -25,30 +27,29 @@ export function useBroadcasts({
 
   const refresh = () => setRefreshTrigger((prev) => prev + 1);
 
-  // 1. Load initial broadcasts from REST API
   useEffect(() => {
     let active = true;
     async function load() {
-      if (!token || !providerId) {
+      if (!providerId) {
         setLoading(false);
         return;
       }
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const res = await fetch(`${baseUrl}/api/v1/providers/${providerId}/broadcasts`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const headers: HeadersInit = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const res = await fetch(`/api/providers/${providerId}/broadcasts`, {
+          headers,
+          credentials: "include",
         });
         if (!res.ok) {
-          throw new Error("Failed to fetch announcements");
+          throw new Error("Failed to fetch line messages");
         }
         const json = await res.json();
         if (active) {
           setBroadcasts(json.data || []);
         }
       } catch (err) {
-        console.error("Error loading broadcasts:", err);
+        console.error("Error loading line messages:", err);
       } finally {
         if (active) setLoading(false);
       }
@@ -59,7 +60,6 @@ export function useBroadcasts({
     };
   }, [providerId, token, refreshTrigger]);
 
-  // 2. Subscribe to WebSocket broadcast notifications
   useEffect(() => {
     if (!wsClient) return;
 
@@ -70,18 +70,21 @@ export function useBroadcasts({
           body: msg.body,
           severity: msg.severity,
           created_at: msg.occurred_at,
-          service_item_id: msg.service_item_id,
+          service_item_id: msg.service_item_id ?? null,
+          author_role: msg.author_role ?? "staff",
+          author_label: msg.author_label ?? "Business",
         };
 
-        // Prevent duplicates and add to start
         setBroadcasts((prev) => {
           if (prev.some((b) => b.id === newBroadcast.id)) return prev;
-          return [newBroadcast, ...prev];
+          return [...prev, newBroadcast];
         });
       }
     });
 
-    return () => { unsubscribe(); };
+    return () => {
+      unsubscribe();
+    };
   }, [wsClient]);
 
   return { broadcasts, setBroadcasts, loading, refresh };

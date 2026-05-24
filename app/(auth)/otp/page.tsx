@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation";
+
 import { OtpVerifyForm } from "./OtpVerifyForm";
 
-export default function OtpVerificationPage({
+export default async function OtpVerificationPage({
   searchParams,
 }: {
-  searchParams: { email?: string };
+  searchParams: Promise<{ email?: string }>;
 }) {
-  const email = searchParams.email?.trim();
+  const { email: rawEmail } = await searchParams;
+  const email = rawEmail?.trim();
 
   if (!email) {
     redirect("/login/otp");
@@ -15,10 +17,11 @@ export default function OtpVerificationPage({
   return (
     <div className="flex flex-1 flex-col">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">
-        Enter Verification Code
+        Enter verification code
       </h1>
       <p className="mb-6 text-sm text-muted">
-        We sent a 6-digit verification code to <span className="font-semibold text-foreground">{email}</span>.
+        We sent a 6-digit code to{" "}
+        <span className="font-semibold text-foreground">{email}</span>.
       </p>
 
       <OtpVerifyForm email={email} />

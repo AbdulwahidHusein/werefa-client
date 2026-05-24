@@ -13,8 +13,14 @@ export function useQueueStream(
 ) {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  const path = token ? `/service-items/${serviceId}/stream` : null;
+
+  // Sync state when the server component re-renders after a server action revalidation.
+  // useState(initialTickets) only runs once on mount; this ensures prop changes propagate.
+  useEffect(() => {
+    setTickets(initialTickets);
+  }, [initialTickets]);
+
+  const path = token ? `/ws/service-items/${serviceId}/stream` : null;
   const { state: wsState, client } = useWebSocket(path, token);
 
   const refreshTickets = useCallback(async () => {
@@ -31,13 +37,18 @@ export function useQueueStream(
 
   useEffect(() => {
     if (!client) return;
-
-    const unsubscribe = client.onMessage((msg) => {
-      // Upon receiving any update event, refresh the full list
+    const unsubscribe = client.onMessage(() => {
       refreshTickets();
     });
     return () => { unsubscribe(); };
   }, [client, refreshTickets]);
 
-  return { tickets, wsState, isRefreshing, refreshTickets };
+  // Fallback: poll every 30 s when the WebSocket is not connected.
+  useEffect(() => {
+    if (wsState === "connected") return;
+    const timer = setInterval(refreshTickets, 30_000);
+    return () => clearInterval(timer);
+  }, [wsState, refreshTickets]);
+
+  return { tickets, wsState, isRefreshing, refreshTickets, client };
 }

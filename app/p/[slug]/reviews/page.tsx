@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
@@ -49,8 +48,8 @@ export default async function ProviderReviewsPage({
   const totalPages = Math.ceil(reviews.count / limit);
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title={`${provider.biz_name} Reviews`}
         subtitle={`${reviews.count} total reviews`}
         back={`/p/${provider.slug}`}
@@ -83,6 +82,6 @@ export default async function ProviderReviewsPage({
           </div>
         )}
       </section>
-    </AppShell>
+  </>
   );
 }

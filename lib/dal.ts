@@ -3,9 +3,10 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
+import { isInvalidSessionError } from "./auth-errors";
 import { apiFetch, ApiRequestError } from "./api/server";
 import type { components } from "./api/schema";
-import { clearProviderId, getProviderId, getSessionToken } from "./session";
+import { getProviderId, getSessionToken } from "./session";
 
 export type Me = components["schemas"]["UserPublic"];
 export type MyProvider = components["schemas"]["MyProviderPublic"];
@@ -23,20 +24,32 @@ export const getMe = cache(async (): Promise<Me | null> => {
   try {
     return await apiFetch<Me>("/users/me", { method: "GET" });
   } catch (err) {
-    if (err instanceof ApiRequestError && err.status === 401) return null;
+    if (isInvalidSessionError(err)) return null;
     throw err;
   }
 });
 
 export async function requireMe(): Promise<Me> {
+  const token = await getSessionToken();
   const me = await getMe();
-  if (!me) redirect("/login");
+  if (!me) {
+    const url = token ? "/login?session=expired" : "/login";
+    redirect(url);
+  }
   return me;
 }
 
 export async function requireAdmin(): Promise<Me> {
   const me = await requireMe();
   if (!me.is_superuser) redirect("/");
+  return me;
+}
+
+export async function requireProvider(): Promise<Me> {
+  const me = await requireMe();
+  if (!me.is_superuser && me.user_type !== "provider") {
+    redirect("/");
+  }
   return me;
 }
 
@@ -47,7 +60,7 @@ export const listMyProviders = cache(async (): Promise<MyProvider[]> => {
     });
     return res.data;
   } catch (err) {
-    if (err instanceof ApiRequestError && err.status === 401) return [];
+    if (isInvalidSessionError(err)) return [];
     throw err;
   }
 });
@@ -55,22 +68,24 @@ export const listMyProviders = cache(async (): Promise<MyProvider[]> => {
 export const getMyProvider = cache(async (): Promise<MyProvider | null> => {
   const providers = await listMyProviders();
   if (providers.length === 0) return null;
+
   const selectedId = await getProviderId();
   if (selectedId) {
     const match = providers.find((p) => p.id === selectedId);
     if (match) return match;
-    await clearProviderId();
   }
+  // No cookie or stale id after reseed: use first membership (read-only in RSC).
   return providers[0];
 });
 
 export const listMyServices = cache(async (): Promise<MyService[]> => {
-  const id = await getProviderId();
-  if (!id) return [];
+  const provider = await getMyProvider();
+  if (!provider) return [];
   try {
-    return await apiFetch<MyService[]>(`/providers/${id}/services/`, {
-      method: "GET",
-    });
+    return await apiFetch<MyService[]>(
+      `/providers/${provider.id}/services/`,
+      { method: "GET" },
+    );
   } catch (err) {
     if (err instanceof ApiRequestError && err.status === 404) return [];
     throw err;
@@ -79,18 +94,23 @@ export const listMyServices = cache(async (): Promise<MyService[]> => {
 
 export const getMyService = cache(
   async (serviceId: string): Promise<MyService | null> => {
-    const id = await getProviderId();
-    if (!id) return null;
     const services = await listMyServices();
     return services.find((s) => s.id === serviceId) ?? null;
   },
 );
 
 export const listMyTickets = cache(async (): Promise<MyTicket[]> => {
-  const res = await apiFetch<MyTickets>("/service-items/me/tickets", {
-    method: "GET",
-  });
-  return res.data;
+  const token = await getSessionToken();
+  if (!token) return [];
+  try {
+    const res = await apiFetch<MyTickets>("/service-items/me/tickets", {
+      method: "GET",
+    });
+    return res.data;
+  } catch (err) {
+    if (isInvalidSessionError(err)) return [];
+    throw err;
+  }
 });
 
 export const listAllProviders = cache(async (): Promise<DiscoveredProvider[]> => {

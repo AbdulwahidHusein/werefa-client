@@ -6,6 +6,7 @@ import { OtpRequestForm } from "./OtpRequestForm";
 
 export default function OtpLoginPage() {
   return (
+    <>
     <div className="flex flex-1 flex-col">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">
         Welcome back
@@ -16,5 +17,6 @@ export default function OtpLoginPage() {
 
       <OtpRequestForm />
     </div>
+  </>
   );
 }

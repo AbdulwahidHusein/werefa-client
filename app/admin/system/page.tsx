@@ -1,4 +1,3 @@
-import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { apiFetch } from "@/lib/api/server";
 import { SystemHealthMonitor } from "@/components/SystemHealthMonitor";
@@ -14,13 +13,13 @@ export default async function AdminSystemPage() {
   }
 
   return (
-    <AppShell>
-      <PageHeader
+    <>
+    <PageHeader
         title="System Health Monitor"
         subtitle="Operational status of backend, database, Redis, and WebSocket subscription channels"
         back="/admin"
       />
       <SystemHealthMonitor initialHealth={initialHealth} />
-    </AppShell>
+  </>
   );
 }

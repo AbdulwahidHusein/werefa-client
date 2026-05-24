@@ -1,3 +1,4 @@
+import { DeskShell } from "@/components/layouts/DeskShell";
 import { requireAdmin } from "@/lib/dal";
 
 export default async function AdminLayout({
@@ -6,5 +7,6 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   await requireAdmin();
-  return <>{children}</>;
+
+  return <DeskShell role="admin">{children}</DeskShell>;
 }

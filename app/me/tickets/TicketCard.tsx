@@ -1,12 +1,13 @@
 "use client";
 
-import { ChevronRight, Clock, X as XIcon } from "lucide-react";
+import { ChevronRight, Clock, Crown, X as XIcon } from "lucide-react";
 import Link from "next/link";
 import { useActionState } from "react";
 
 import { cancelTicketAction, type CancelState } from "./actions";
 import { StatusPill } from "@/components/ui/StatusPill";
 import type { components } from "@/lib/api/schema";
+import type { TicketQueueSnapshot } from "@/lib/ticket-snapshot";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
 
@@ -25,7 +26,13 @@ function relativeTime(iso: string | null | undefined): string | null {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-export function TicketCard({ ticket }: { ticket: Ticket }) {
+export function TicketCard({
+  ticket,
+  snapshot,
+}: {
+  ticket: Ticket;
+  snapshot: TicketQueueSnapshot | null;
+}) {
   const action = cancelTicketAction.bind(
     null,
     ticket.service_item_id,
@@ -46,19 +53,46 @@ export function TicketCard({ ticket }: { ticket: Ticket }) {
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          {snapshot ? (
+            <>
+              <p className="truncate text-sm font-semibold">{snapshot.biz_name}</p>
+              <p className="truncate text-xs text-muted">{snapshot.service_name}</p>
+              <p className="mt-1 text-xs text-muted">
+                {snapshot.your_position != null
+                  ? `#${snapshot.your_position} in line`
+                  : "In queue"}
+                {" · "}
+                {snapshot.waiting_count} waiting
+                {snapshot.estimated_wait_minutes != null
+                  ? ` · ~${snapshot.estimated_wait_minutes} min`
+                  : ""}
+                {snapshot.vip_waiting_count > 0 ? (
+                  <span className="ml-1 inline-flex items-center gap-0.5 text-amber-700">
+                    <Crown className="h-3 w-3" aria-hidden />
+                    {snapshot.vip_waiting_count} VIP
+                  </span>
+                ) : null}
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-muted">Queue details loading…</p>
+          )}
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <StatusPill status={ticket.status} />
+            <span className="inline-flex items-center gap-1 text-xs text-muted">
+              <Clock className="h-3 w-3" aria-hidden />
+              Joined {relativeTime(ticket.joined_at) ?? "—"}
+            </span>
           </div>
-          <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted">
-            <Clock className="h-3 w-3" aria-hidden />
-            Joined {relativeTime(ticket.joined_at) ?? "—"}
-          </p>
         </div>
         <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />
       </Link>
 
       {state?.error ? (
-        <p className="border-t border-border px-4 py-2 text-xs text-danger" role="alert">
+        <p
+          className="border-t border-border px-4 py-2 text-xs text-danger"
+          role="alert"
+        >
           {state.error}
         </p>
       ) : null}

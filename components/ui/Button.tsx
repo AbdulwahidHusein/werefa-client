@@ -1,16 +1,19 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "ghost" | "outline";
+type Variant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 
 const base =
-  "inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-2xl px-5 text-base font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]";
+  "inline-flex h-12 min-h-12 w-full cursor-pointer items-center justify-center rounded-lg px-5 text-base font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-accent-foreground hover:bg-indigo-700",
+  primary: "bg-accent text-accent-foreground hover:bg-accent-hover",
   secondary:
     "border border-border bg-background text-foreground hover:bg-surface",
   ghost: "text-muted hover:text-foreground",
-  outline: "border border-border bg-transparent text-foreground hover:bg-surface",
+  outline:
+    "border border-border bg-transparent text-foreground hover:bg-surface",
+  danger:
+    "border border-rose-200 bg-background text-rose-800 hover:bg-rose-50",
 };
 
 export function Button({
