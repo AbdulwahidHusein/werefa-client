@@ -5,8 +5,18 @@ import { useState } from "react";
 
 import { ConditionalSeekerShell } from "@/components/layouts/ConditionalSeekerShell";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import {
+  SeekerNavProvider,
+  type SeekerNavSession,
+} from "@/lib/seeker-nav-context";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  seekerNav,
+}: {
+  children: React.ReactNode;
+  seekerNav: SeekerNavSession;
+}) {
   const [client] = useState(
     () =>
       new QueryClient({
@@ -21,8 +31,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <ConditionalSeekerShell>{children}</ConditionalSeekerShell>
-      <InstallPrompt />
+      <SeekerNavProvider value={seekerNav}>
+        <ConditionalSeekerShell>{children}</ConditionalSeekerShell>
+        <InstallPrompt />
+      </SeekerNavProvider>
     </QueryClientProvider>
   );
 }

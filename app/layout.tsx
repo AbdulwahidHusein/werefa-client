@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { getMe } from "@/lib/dal";
+import { resolveAppRole } from "@/lib/navigation";
+import { getAppRole, getSessionToken } from "@/lib/session";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,15 +31,20 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const hasSession = Boolean(await getSessionToken());
+  const me = hasSession ? await getMe() : null;
+  const roleFromCookie = await getAppRole();
+  const role = me ? resolveAppRole(me) : roleFromCookie;
+
   return (
     <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
-        <Providers>{children}</Providers>
+        <Providers seekerNav={{ hasSession, role }}>{children}</Providers>
       </body>
     </html>
   );

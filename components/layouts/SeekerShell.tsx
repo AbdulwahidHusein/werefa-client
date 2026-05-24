@@ -46,18 +46,26 @@ export function SeekerShell({
   const isProviderPage = pathname.startsWith("/p/");
   const contentWidth = wide || isProviderPage ? "max-w-7xl w-full" : "max-w-md w-full";
 
+  const navHeight =
+    "calc(4rem + env(safe-area-inset-bottom, 0px))";
+
   return (
     <div
-      className={`flex min-h-dvh flex-col px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top))]`}
+      className="flex min-h-dvh flex-col px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top))]"
+      style={showNav ? { paddingBottom: navHeight } : undefined}
     >
-      <div
-        className={`mx-auto flex w-full flex-1 flex-col pb-4 ${contentWidth}`}
-      >
+      <div className={`mx-auto flex w-full flex-1 flex-col ${contentWidth}`}>
         {children}
       </div>
       {showNav ? (
-        <nav className="sticky bottom-0 z-30 -mx-4 mt-auto border-t border-border bg-background px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
-          <ul className="grid grid-cols-4 gap-0.5">
+        <nav
+          className="fixed inset-x-0 bottom-0 z-[100] isolate transform-gpu border-t border-border bg-background px-2 pt-2 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+          style={{
+            paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))",
+          }}
+          aria-label="Main navigation"
+        >
+          <ul className="mx-auto grid max-w-7xl grid-cols-4 gap-0.5">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const active = tab.match(pathname);

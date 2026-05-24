@@ -6,11 +6,11 @@ import { usePathname } from "next/navigation";
 import { api } from "@/lib/api/client";
 import type { components } from "@/lib/api/schema";
 import { resolveAppRole } from "@/lib/navigation";
+import { useSeekerNavSession } from "@/lib/seeker-nav-context";
 
 type Me = components["schemas"]["UserPublic"];
 
-/** Routes where logged-in seekers always get the bottom tab bar (except public home). */
-function isSeekerShellPath(pathname: string): boolean {
+function isSeekerAppRoute(pathname: string): boolean {
   return (
     pathname.startsWith("/me/") ||
     pathname === "/account" ||
@@ -19,25 +19,41 @@ function isSeekerShellPath(pathname: string): boolean {
 }
 
 /**
- * Bottom tabs for logged-in customers (service seekers) on every page except `/`.
- * Hidden on the public discover home, and for guests, providers, and admins.
+ * Bottom tabs for logged-in service seekers.
+ * - Home `/`: hidden for guests; visible for seekers only.
+ * - Tickets, notifications, account: visible for seekers (uses server session from login).
  */
 export function useSeekerBottomNav(): boolean {
   const pathname = usePathname();
+  const { hasSession, role: serverRole } = useSeekerNavSession();
 
-  const { data: me, isPending } = useQuery({
+  const { data: me } = useQuery({
     queryKey: ["users", "me", "nav"],
     queryFn: () => api<Me>("/users/me"),
+    enabled: hasSession,
     retry: false,
     staleTime: 60_000,
   });
 
-  if (pathname === "/") return false;
+  const role = me ? resolveAppRole(me) : serverRole;
 
-  if (isPending) {
-    return isSeekerShellPath(pathname);
+  if (role !== "seeker") return false;
+
+  if (pathname === "/") {
+    return hasSession;
   }
 
-  if (!me) return false;
-  return resolveAppRole(me) === "seeker";
+  if (isSeekerAppRoute(pathname)) {
+    return hasSession;
+  }
+
+  // Business pages while logged in as seeker
+  if (
+    pathname.startsWith("/p/") ||
+    pathname.startsWith("/join")
+  ) {
+    return hasSession;
+  }
+
+  return false;
 }
