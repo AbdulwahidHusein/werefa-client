@@ -59,7 +59,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Fixed bottom tab bar — native app feel; only .seeker-shell-main scrolls */
+/* Fixed bottom tab bar — page scrolls under it (window scroll, not a trapped inner pane) */
 .seeker-bottom-nav {
   position: fixed;
   left: 0;

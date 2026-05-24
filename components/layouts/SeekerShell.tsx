@@ -47,21 +47,16 @@ export function SeekerShell({
   const contentWidth = wide || isProviderPage ? "max-w-7xl w-full" : "max-w-md w-full";
 
   return (
-    <div
-      className="seeker-shell flex min-h-0 w-full flex-col bg-background px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top))]"
-      style={{ minHeight: "var(--app-height, 100dvh)" }}
-    >
-      {/* Only page content scrolls — tab bar stays fixed like a native app */}
-      <main
-        className={`seeker-shell-main mx-auto min-h-0 w-full flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch] ${contentWidth}`}
+    <>
+      {/* Page scrolls normally (window/body); padding clears the fixed tab bar */}
+      <div
+        className={`seeker-shell-content mx-auto w-full min-h-[var(--app-height,100dvh)] px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top))] ${contentWidth}`}
         style={
-          showNav
-            ? { paddingBottom: "var(--seeker-nav-offset)" }
-            : undefined
+          showNav ? { paddingBottom: "var(--seeker-nav-offset)" } : undefined
         }
       >
         {children}
-      </main>
+      </div>
 
       {showNav ? (
         <nav className="seeker-bottom-nav" aria-label="Main navigation">
@@ -95,6 +90,6 @@ export function SeekerShell({
           </ul>
         </nav>
       ) : null}
-    </div>
+    </>
   );
 }
