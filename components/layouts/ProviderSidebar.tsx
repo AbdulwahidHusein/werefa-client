@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   Building2,
   LayoutList,
   ListOrdered,
@@ -34,6 +35,12 @@ function buildLinks(queueHref: string | null | undefined): NavItem[] {
       icon: Wrench,
       match: (p) =>
         p.startsWith("/dashboard/services") && !p.includes("/queue"),
+    },
+    {
+      href: "/dashboard/analytics",
+      label: "Analytics",
+      icon: BarChart3,
+      match: (p) => p.startsWith("/dashboard/analytics"),
     },
     {
       href: "/dashboard/members",

@@ -39,7 +39,8 @@ export function TicketCard({
     ticket.id,
   );
   const [state, dispatch, pending] = useActionState(action, initial);
-  const cancellable = ticket.status === "waiting";
+  const cancellable =
+    ticket.status === "waiting" || ticket.status === "pending_approval";
 
   return (
     <li className="overflow-hidden rounded-2xl border border-border bg-background">
@@ -78,7 +79,14 @@ export function TicketCard({
             <p className="text-xs text-muted">Queue details loading…</p>
           )}
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <StatusPill status={ticket.status} />
+            <StatusPill
+              status={ticket.status}
+              children={
+                ticket.status === "pending_approval"
+                  ? "Awaiting approval"
+                  : undefined
+              }
+            />
             <span className="inline-flex items-center gap-1 text-xs text-muted">
               <Clock className="h-3 w-3" aria-hidden />
               Joined {relativeTime(ticket.joined_at) ?? "—"}
@@ -98,14 +106,26 @@ export function TicketCard({
       ) : null}
 
       {cancellable ? (
-        <form action={dispatch} className="border-t border-border">
+        <form
+          action={dispatch}
+          className="border-t border-border"
+          onSubmit={(e) => {
+            if (
+              !window.confirm(
+                "Leave the queue? You will lose your place in line.",
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
+        >
           <button
             type="submit"
             disabled={pending}
-            className="flex h-10 w-full cursor-pointer items-center justify-center gap-1.5 px-3 text-xs font-medium text-muted hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full cursor-pointer items-center justify-center gap-1.5 px-3 text-xs font-semibold text-rose-800 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <XIcon className="h-3.5 w-3.5" aria-hidden />
-            {pending ? "Cancelling…" : "Cancel ticket"}
+            {pending ? "Leaving…" : "Leave queue"}
           </button>
         </form>
       ) : null}

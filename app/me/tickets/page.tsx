@@ -8,7 +8,12 @@ import { listMyTickets } from "@/lib/dal";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { TicketQueueSnapshot } from "@/lib/ticket-snapshot";
 
-export default async function MyTicketsPage() {
+export default async function MyTicketsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ left?: string }>;
+}) {
+  const { left } = await searchParams;
   const tickets = await listMyTickets();
 
   const sorted = [...tickets].sort((a, b) => {
@@ -36,6 +41,12 @@ export default async function MyTicketsPage() {
   return (
     <>
       <PageHeader title="My tickets" subtitle="Active queue entries" />
+
+      {left === "1" ? (
+        <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+          You left the queue. You can join again anytime from the business page.
+        </p>
+      ) : null}
 
       {sorted.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">

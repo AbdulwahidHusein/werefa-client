@@ -21,6 +21,7 @@ export async function joinQueueAction(
   const inviteToken = formData.get("invite_token");
   const latRaw = String(formData.get("latitude") ?? "").trim();
   const lngRaw = String(formData.get("longitude") ?? "").trim();
+  const docCount = Number(formData.get("join_doc_count") ?? "0");
   if (code.length > 6) {
     return { error: "Access code must be 6 characters or fewer.", code };
   }
@@ -38,17 +39,47 @@ export async function joinQueueAction(
     }
   }
 
+  const useMultipart = Number.isFinite(docCount) && docCount > 0;
+
   try {
-    await apiFetch<QueueEntryPublic>(`/service-items/${serviceId}/join`, {
-      method: "POST",
-      body: {
-        access_code: code === "" ? null : code,
-        vip_code: vipCode === "" ? null : vipCode,
-        invite_token: inviteToken ? String(inviteToken) : null,
-        latitude,
-        longitude,
-      },
-    });
+    let ticket: QueueEntryPublic & { status?: string };
+
+    if (useMultipart) {
+      const body = new FormData();
+      if (code) body.set("access_code", code);
+      if (vipCode) body.set("vip_code", vipCode);
+      if (inviteToken) body.set("invite_token", String(inviteToken));
+      if (latitude != null) body.set("latitude", String(latitude));
+      if (longitude != null) body.set("longitude", String(longitude));
+      for (let i = 0; i < docCount; i++) {
+        const file = formData.get(`document_${i}`);
+        if (!(file instanceof File) || file.size === 0) {
+          return { error: "Please upload all required documents.", code };
+        }
+        body.append("documents", file);
+      }
+      ticket = await apiFetch<QueueEntryPublic & { status?: string }>(
+        `/service-items/${serviceId}/join-with-files`,
+        { method: "POST", body },
+      );
+    } else {
+      ticket = await apiFetch<QueueEntryPublic & { status?: string }>(
+        `/service-items/${serviceId}/join`,
+        {
+          method: "POST",
+          body: {
+            access_code: code === "" ? null : code,
+            vip_code: vipCode === "" ? null : vipCode,
+            invite_token: inviteToken ? String(inviteToken) : null,
+            latitude,
+            longitude,
+          },
+        },
+      );
+    }
+    if (ticket.status === "pending_approval") {
+      redirect(`/me/tickets/${ticket.id}?pending=1`);
+    }
   } catch (err) {
     if (err instanceof ApiRequestError) {
       return { error: err.detail, code };

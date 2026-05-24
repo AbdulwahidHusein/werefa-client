@@ -54,10 +54,24 @@ export function WalkInForm({
           <input type="hidden" name="is_vip" value={String(isVip)} />
 
           <Field
-            label="Name (optional)"
+            label="Name"
             name="guest_name"
             maxLength={100}
             placeholder="Customer name"
+          />
+          <Field
+            label="Phone (optional)"
+            name="guest_phone"
+            type="tel"
+            maxLength={32}
+            placeholder="+251 9xx xxx xxx"
+          />
+          <Field
+            label="Email (optional)"
+            name="guest_email"
+            type="email"
+            maxLength={255}
+            placeholder="customer@email.com"
           />
 
           {/* VIP toggle — only show if service allows VIP */}

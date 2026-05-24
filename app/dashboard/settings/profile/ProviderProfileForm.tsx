@@ -14,6 +14,10 @@ import {
   type ProfileUpdateState,
 } from "./actions";
 import type { MyProvider } from "@/lib/dal";
+import {
+  formatCategoryLabel,
+  PROVIDER_CATEGORIES,
+} from "@/lib/provider-categories";
 
 type ExtendedProvider = MyProvider & {
   last_rejection_reason?: string | null;
@@ -27,13 +31,6 @@ type ExtendedProvider = MyProvider & {
   website?: string | null;
   biz_email?: string | null;
 };
-
-const CATEGORIES = [
-  "clinic", "dental", "pharmacy", "hospital", "salon", "barbershop",
-  "bank", "telecom", "government", "university", "school",
-  "restaurant", "hotel", "laundry", "fitness", "legal", "accounting",
-  "auto", "other",
-];
 
 function Toggle({
   label,
@@ -269,9 +266,9 @@ export function ProviderProfileForm({
               className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Select a category…</option>
-              {CATEGORIES.map((c) => (
+              {PROVIDER_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c.charAt(0).toUpperCase() + c.slice(1)}
+                  {formatCategoryLabel(c)}
                 </option>
               ))}
             </select>

@@ -65,6 +65,7 @@ export function useLineChat({
     const unsubscribe = wsClient.onMessage((msg: unknown) => {
       const m = msg as {
         type?: string;
+        reason?: string;
         message_id?: string;
         author_user_id?: string;
         body?: string;
@@ -72,6 +73,10 @@ export function useLineChat({
         author_label?: string;
         occurred_at?: string;
       };
+      if (m.type === "queue_updated" && m.reason === "queue_cleared") {
+        setMessages([]);
+        return;
+      }
       if (m.type !== "line_chat_v1" || !m.message_id || !m.body) return;
 
       const incoming: LineChatMessage = {

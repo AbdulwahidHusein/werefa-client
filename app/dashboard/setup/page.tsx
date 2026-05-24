@@ -10,12 +10,18 @@ export default async function SetupPage() {
 
   return (
     <>
-      <PageHeader title="Create your business" back="/dashboard" />
-      <p className="-mt-2 mb-4 text-sm text-muted">
-        Add the basics so customers can find you. You can fill in more details
-        from your settings page once created.
+      <PageHeader
+        title="Set up your business"
+        subtitle="Profile, contact, location, and queue access"
+        back="/dashboard"
+      />
+      <p className="-mt-2 mb-5 max-w-3xl text-sm leading-relaxed text-muted lg:max-w-none">
+        Complete your public profile so customers can find and trust you on
+        Discover. You can add a logo and services right after creation.
       </p>
-      <SetupForm />
+      <div className="mx-auto w-full lg:max-w-4xl xl:max-w-5xl">
+        <SetupForm />
+      </div>
     </>
   );
 }

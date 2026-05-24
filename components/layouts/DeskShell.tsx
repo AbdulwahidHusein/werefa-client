@@ -86,7 +86,7 @@ export function DeskShell({
 
         {/* Scrollable page content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-2xl px-4 py-6 lg:px-6 lg:py-8">
+          <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:max-w-4xl lg:max-w-6xl lg:px-8 lg:py-8 xl:max-w-7xl">
             {children}
           </div>
         </main>

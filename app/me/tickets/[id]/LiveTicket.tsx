@@ -60,7 +60,8 @@ export function LiveTicket({
 
   const status = ticket.status;
   const isServing = status === "serving";
-  const isCallable = status === "waiting";
+  const isPendingApproval = status === "pending_approval";
+  const isCallable = status === "waiting" || isPendingApproval;
 
   const { status: locStatus, lastPingTime, errorMsg, requestPermission } =
     useLocationTracking({
@@ -96,6 +97,19 @@ export function LiveTicket({
           <div className="mt-1 rounded-full bg-white/15 px-3 py-1 text-sm font-medium">
             Ticket #{ticket.ticket_number}
           </div>
+        </div>
+      ) : isPendingApproval ? (
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-indigo-200 bg-indigo-50 p-8 text-center">
+          <p className="text-xs uppercase tracking-widest text-indigo-800">
+            Waiting for approval · {title}
+          </p>
+          <p className="text-4xl font-bold tracking-tight text-indigo-950">
+            #{ticket.ticket_number}
+          </p>
+          <p className="max-w-sm text-sm text-indigo-900/90">
+            The business must approve your request before you appear in the queue.
+            You can leave below if you changed your mind.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-background p-8 text-center">
@@ -138,15 +152,29 @@ export function LiveTicket({
       ) : null}
 
       {isCallable ? (
-        <form action={cancelDispatch}>
+        <form
+          action={cancelDispatch}
+          onSubmit={(e) => {
+            if (
+              !window.confirm(
+                "Leave the queue? You will lose your place in line and need to join again.",
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
+        >
           <button
             type="submit"
             disabled={cancelPending}
-            className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-background px-4 text-sm font-medium text-muted hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 text-sm font-semibold text-rose-900 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <XIcon className="h-4 w-4" aria-hidden />
-            {cancelPending ? "Cancelling…" : "Cancel my ticket"}
+            {cancelPending ? "Leaving queue…" : "Leave queue"}
           </button>
+          <p className="mt-1.5 text-center text-[10px] text-muted">
+            You can rejoin later if the line is still open
+          </p>
         </form>
       ) : null}
 

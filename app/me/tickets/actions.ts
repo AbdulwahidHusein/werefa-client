@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
@@ -23,7 +24,8 @@ export async function cancelTicketAction(
       { method: "DELETE" },
     );
     revalidatePath("/me/tickets");
-    return undefined;
+    revalidatePath(`/me/tickets/${ticketId}`);
+    redirect("/me/tickets?left=1");
   } catch (err) {
     if (err instanceof ApiRequestError) return { error: err.detail };
     return { error: "Could not cancel. Try again." };

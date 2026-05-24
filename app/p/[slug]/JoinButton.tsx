@@ -4,10 +4,12 @@ import { Crown } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 
 import { joinQueueAction, type JoinState } from "./actions";
+import { JoinDocumentUploadFields } from "@/components/JoinDocumentUploadFields";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Sheet } from "@/components/ui/Sheet";
 import { readCachedLocation } from "@/lib/geo";
+import type { JoinDocumentRequirement } from "@/lib/join-documents";
 
 const initial: JoinState = undefined;
 
@@ -19,6 +21,7 @@ export function JoinButton({
   joinable,
   autoJoin,
   inviteToken,
+  joinDocuments = [],
 }: {
   serviceId: string;
   serviceName: string;
@@ -27,6 +30,7 @@ export function JoinButton({
   joinable: boolean;
   autoJoin?: boolean;
   inviteToken?: string;
+  joinDocuments?: JoinDocumentRequirement[];
 }) {
   const action = joinQueueAction.bind(null, serviceId);
   const [state, formAction, pending] = useActionState(action, initial);
@@ -111,6 +115,17 @@ export function JoinButton({
               </div>
             </details>
           )}
+
+          {joinDocuments.length > 0 ? (
+            <>
+              <input
+                type="hidden"
+                name="join_doc_count"
+                value={String(joinDocuments.length)}
+              />
+              <JoinDocumentUploadFields requirements={joinDocuments} />
+            </>
+          ) : null}
 
           {allowVip ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3">

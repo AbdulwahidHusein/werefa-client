@@ -7,6 +7,7 @@ import type { components } from "@/lib/api/schema";
 import { getMe, getMyProvider, getMyService, listMyServices } from "@/lib/dal";
 import { getServiceLineStats } from "@/lib/provider-routes";
 import { getSessionToken } from "@/lib/session";
+import { parseRequirements } from "@/lib/join-documents";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
 type Tickets = components["schemas"]["QueueEntriesPublic"];
@@ -14,6 +15,10 @@ type ServiceItemPublic = components["schemas"]["ServiceItemPublic"] & {
   allow_vip?: boolean;
   is_paused?: boolean;
   line_chat_enabled?: boolean;
+  requires_join_approval?: boolean;
+  approval_queue_order?: "preserve_register_time" | "approval_time";
+  requires_join_documents?: boolean;
+  join_document_requirements?: unknown;
 };
 
 export default async function QueueBoardPage({
@@ -75,6 +80,23 @@ export default async function QueueBoardPage({
           initialIsPaused={(service as ServiceItemPublic).is_paused ?? false}
           allowVip={(service as ServiceItemPublic).allow_vip ?? false}
           lineChatEnabled={(service as ServiceItemPublic).line_chat_enabled ?? true}
+          requiresJoinApproval={
+            (service as ServiceItemPublic).requires_join_approval ?? false
+          }
+          approvalQueueOrder={
+            (service as ServiceItemPublic).approval_queue_order ??
+            "preserve_register_time"
+          }
+          requiresJoinDocuments={
+            (service as ServiceItemPublic).requires_join_documents ?? false
+          }
+          joinDocumentRequirements={
+            (service as ServiceItemPublic).requires_join_documents
+              ? parseRequirements(
+                  (service as ServiceItemPublic).join_document_requirements,
+                )
+              : []
+          }
           isOwner={provider.membership_role === "owner"}
           currentUserId={me?.id}
           serviceLineStats={serviceLineStats}

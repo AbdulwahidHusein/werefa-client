@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
+import { parseRequirements } from "@/lib/join-documents";
 
 type ProviderPublic = components["schemas"]["ProviderPublic"] & {
   category?: string | null;
@@ -26,6 +27,8 @@ type ServiceItemPublic = components["schemas"]["ServiceItemPublic"] & {
   is_paused?: boolean;
   is_private?: boolean;
   allow_vip?: boolean;
+  requires_join_documents?: boolean;
+  join_document_requirements?: unknown;
 };
 
 type ProviderRatingSummary = components["schemas"]["ProviderRatingSummary"];
@@ -242,6 +245,11 @@ export default async function ProviderPage({
                     joinable={joinable && !s.is_paused && s.is_active}
                     autoJoin={sp?.autoJoin === "true" && sp?.serviceId === s.id}
                     inviteToken={sp?.serviceId === s.id ? sp?.inviteToken : undefined}
+                    joinDocuments={
+                      s.requires_join_documents
+                        ? parseRequirements(s.join_document_requirements)
+                        : []
+                    }
                   />
                 </div>
               </li>

@@ -14,6 +14,7 @@ type Palette = keyof typeof palettes;
 const PALETTE: Record<string, Palette> = {
   // queue ticket statuses
   waiting: "amber",
+  pending_approval: "indigo",
   serving: "emerald",
   completed: "zinc",
   no_show: "rose",
@@ -36,6 +37,7 @@ const PALETTE: Record<string, Palette> = {
   liveness_ping_request: "blue",
   liveness_stale: "rose",
   line_chat_update: "indigo",
+  queue_cleared: "rose",
   called: "emerald",
 };
 
