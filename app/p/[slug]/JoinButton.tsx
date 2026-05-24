@@ -1,7 +1,7 @@
 "use client";
 
 import { Crown } from "lucide-react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useId, useState } from "react";
 
 import { joinQueueAction, type JoinState } from "./actions";
 import { ServiceLinePreviewCard } from "@/components/ServiceLinePreviewCard";
@@ -33,6 +33,7 @@ export function JoinButton({
   inviteToken?: string;
   joinDocuments?: JoinDocumentRequirement[];
 }) {
+  const formId = useId();
   const action = joinQueueAction.bind(null, serviceId);
   const [state, formAction, pending] = useActionState(action, initial);
   const [open, setOpen] = useState(autoJoin || false);
@@ -69,8 +70,26 @@ export function JoinButton({
         Join
       </button>
 
-      <Sheet open={open} onClose={() => setOpen(false)} title="Join the line">
-        <form action={formAction} className="flex flex-col gap-4 pb-4">
+      <Sheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Join the line"
+        footer={
+          <Button
+            type="submit"
+            form={formId}
+            disabled={pending}
+            aria-busy={pending}
+          >
+            {pending ? "Joining…" : "Confirm join"}
+          </Button>
+        }
+      >
+        <form
+          id={formId}
+          action={formAction}
+          className="flex flex-col gap-4 pb-4"
+        >
           {inviteToken ? (
             <input type="hidden" name="invite_token" value={inviteToken} />
           ) : null}
@@ -100,11 +119,11 @@ export function JoinButton({
               placeholder="ABCDEF"
             />
           ) : (
-            <details>
-              <summary className="cursor-pointer text-sm text-muted">
+            <details className="rounded-xl border border-border bg-surface/30 px-3 py-2">
+              <summary className="cursor-pointer text-sm font-medium text-foreground">
                 Have an access code?
               </summary>
-              <div className="mt-2">
+              <div className="mt-3 pb-1">
                 <Field
                   label="Access code"
                   name="access_code"
@@ -135,13 +154,15 @@ export function JoinButton({
               <button
                 type="button"
                 onClick={() => setUseVip((v) => !v)}
-                className="flex w-full items-center justify-between gap-2 text-sm"
+                className="flex w-full cursor-pointer items-center justify-between gap-2 text-sm"
               >
                 <span className="flex items-center gap-1.5 font-medium text-amber-800">
                   <Crown className="h-4 w-4 text-amber-500" />
                   I have a VIP code
                 </span>
-                <span className="text-xs text-amber-600">{useVip ? "▲ hide" : "▼ enter code"}</span>
+                <span className="text-xs text-amber-600">
+                  {useVip ? "▲ hide" : "▼ enter code"}
+                </span>
               </button>
               {useVip ? (
                 <div className="mt-2">
@@ -154,7 +175,7 @@ export function JoinButton({
                     spellCheck={false}
                     placeholder="e.g., GOLD2024"
                   />
-                  <p className="mt-1 text-xs text-amber-700 leading-relaxed">
+                  <p className="mt-1 text-xs leading-relaxed text-amber-700">
                     VIP customers are served before the regular queue.
                   </p>
                 </div>
@@ -175,10 +196,6 @@ export function JoinButton({
               ) : null}
             </div>
           ) : null}
-
-          <Button type="submit" disabled={pending} aria-busy={pending}>
-            {pending ? "Joining…" : "Confirm join"}
-          </Button>
         </form>
       </Sheet>
     </>
