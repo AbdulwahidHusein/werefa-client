@@ -15,9 +15,7 @@ export default async function NotificationsPage() {
   });
   const notifications: Notification[] = res.data;
   const unreadCount =
-    typeof res.unread_count === "number"
-      ? res.unread_count
-      : notifications.filter((n) => !n.read_at).length;
+    res.unread_count ?? notifications.filter((n) => !n.read_at).length;
 
   return (
     <>

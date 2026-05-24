@@ -61,6 +61,7 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
     payload = JSON.stringify(body);
   }
   const res = await fetch(buildPath(path, query), {
+    credentials: "include",
     ...rest,
     headers: reqHeaders,
     body: payload,

@@ -983,6 +983,8 @@ export interface components {
             position?: number | null;
             /** Created At */
             created_at?: string | null;
+            /** Read At */
+            read_at?: string | null;
         };
         /** NotificationsPublic */
         NotificationsPublic: {
@@ -990,6 +992,11 @@ export interface components {
             data: components["schemas"]["NotificationPublic"][];
             /** Count */
             count: number;
+            /**
+             * Unread Count
+             * @default 0
+             */
+            unread_count?: number;
         };
         /** ProviderCreate */
         ProviderCreate: {

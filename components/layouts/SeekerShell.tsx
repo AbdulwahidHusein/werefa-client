@@ -34,16 +34,22 @@ const TABS = [
 export function SeekerShell({
   children,
   showNav = true,
+  wide = false,
 }: {
   children: React.ReactNode;
   showNav?: boolean;
+  wide?: boolean;
 }) {
   const pathname = usePathname();
   const { unreadCount } = useUnreadNotificationCount();
 
   return (
     <div className="flex min-h-dvh flex-col px-4 pt-[max(1rem,env(safe-area-inset-top))]">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col pb-4">
+      <div
+        className={`mx-auto flex w-full flex-1 flex-col pb-4 ${
+          wide ? "max-w-6xl" : "max-w-md"
+        }`}
+      >
         {children}
       </div>
       {showNav ? (

@@ -28,6 +28,7 @@ export function ProviderCard({ p }: { p: Discovery }) {
             {status ? <StatusPill status={status} /> : null}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+            {p.city ? <span>{p.city}</span> : null}
             {p.distance_m != null ? (
               <span>{formatDistance(p.distance_m)}</span>
             ) : null}
