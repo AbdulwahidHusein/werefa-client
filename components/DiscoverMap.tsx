@@ -180,9 +180,7 @@ export function DiscoverMap({
             />
             {formatWait(selected.estimated_wait_minutes)} · {selected.active_tickets} in
             line
-            {(selected as Provider & { city?: string | null }).city
-              ? ` · ${(selected as Provider & { city?: string | null }).city}`
-              : ""}
+            {selected.city ? ` · ${selected.city}` : ""}
           </p>
         </Link>
       ) : (

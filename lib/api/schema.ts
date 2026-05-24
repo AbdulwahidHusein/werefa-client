@@ -1069,6 +1069,8 @@ export interface components {
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
+            /** City */
+            city?: string | null;
             /**
              * Is Private
              * @default false
@@ -1132,6 +1134,8 @@ export interface components {
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
+            /** City */
+            city?: string | null;
             /**
              * Is Private
              * @default false
