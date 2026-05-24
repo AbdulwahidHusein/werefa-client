@@ -10,6 +10,12 @@
   --accent-fg: #fafafa;
   --danger: #b91c1c;
   --surface: #f4f4f5;
+  --pwa-safe-bottom: 0px;
+  --seeker-tab-bar-h: 3.5rem;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --seeker-nav-safe: max(var(--safe-area-bottom), var(--pwa-safe-bottom, 0px));
+  --seeker-nav-offset: calc(var(--seeker-tab-bar-h) + var(--seeker-nav-safe));
+  --app-height: 100dvh;
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-base: 1.0625rem;
@@ -38,6 +44,7 @@
 
 html {
   font-size: 17px;
+  height: 100%;
 }
 
 html,
@@ -47,8 +54,57 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
     sans-serif;
   line-height: 1.5;
+  min-height: var(--app-height, 100dvh);
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Fixed bottom tab bar — native app feel; only .seeker-shell-main scrolls */
+.seeker-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  box-sizing: border-box;
+  min-height: var(--seeker-nav-offset);
+  padding-top: 0.5rem;
+  padding-bottom: var(--seeker-nav-safe);
+  border-top: 1px solid var(--border);
+  background-color: var(--background);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Paint safe-area strip below nav (iOS standalone gap) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .seeker-bottom-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--seeker-nav-safe);
+    transform: translateY(100%);
+    background-color: var(--background);
+    pointer-events: none;
+  }
+}
+
+/* Installed app (Add to Home Screen): safe-area env() is often 0 — pad nav manually */
+@media (display-mode: standalone) {
+  :root {
+    --pwa-safe-bottom: 20px;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    :root {
+      --pwa-safe-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    }
+  }
 }
 
 input,

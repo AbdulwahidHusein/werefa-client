@@ -14,45 +14,41 @@ function isSeekerAppRoute(pathname: string): boolean {
   return (
     pathname.startsWith("/me/") ||
     pathname === "/account" ||
-    pathname.startsWith("/account/")
+    pathname.startsWith("/account/") ||
+    pathname.startsWith("/p/") ||
+    pathname.startsWith("/join")
   );
 }
 
 /**
  * Bottom tabs for logged-in service seekers.
- * - Home `/`: hidden for guests; visible for seekers only.
- * - Tickets, notifications, account: visible for seekers (uses server session from login).
+ * Uses live `/users/me` so PWA / home-screen shortcuts stay in sync with cookies.
  */
 export function useSeekerBottomNav(): boolean {
   const pathname = usePathname();
   const { hasSession, role: serverRole } = useSeekerNavSession();
 
-  const { data: me } = useQuery({
+  const { data: me, isPending, isFetching } = useQuery({
     queryKey: ["users", "me", "nav"],
     queryFn: () => api<Me>("/users/me"),
-    enabled: hasSession,
     retry: false,
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchOnMount: "always",
   });
 
   const role = me ? resolveAppRole(me) : serverRole;
 
-  if (role !== "seeker") return false;
-
-  if (pathname === "/") {
-    return hasSession;
+  if (me) {
+    return role === "seeker";
   }
 
-  if (isSeekerAppRoute(pathname)) {
-    return hasSession;
+  // Server hint (first paint / while /users/me loads) — important right after login redirect
+  if ((isPending || isFetching) && hasSession && serverRole === "seeker") {
+    return pathname === "/" || isSeekerAppRoute(pathname);
   }
 
-  // Business pages while logged in as seeker
-  if (
-    pathname.startsWith("/p/") ||
-    pathname.startsWith("/join")
-  ) {
-    return hasSession;
+  if (hasSession && serverRole === "seeker") {
+    return pathname === "/" || isSeekerAppRoute(pathname);
   }
 
   return false;

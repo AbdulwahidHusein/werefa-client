@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { ConditionalSeekerShell } from "@/components/layouts/ConditionalSeekerShell";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { PwaViewportFix } from "@/components/PwaViewportFix";
 import {
   SeekerNavProvider,
   type SeekerNavSession,
@@ -32,6 +33,7 @@ export function Providers({
   return (
     <QueryClientProvider client={client}>
       <SeekerNavProvider value={seekerNav}>
+        <PwaViewportFix />
         <ConditionalSeekerShell>{children}</ConditionalSeekerShell>
         <InstallPrompt />
       </SeekerNavProvider>
