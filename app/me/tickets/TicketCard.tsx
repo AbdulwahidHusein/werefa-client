@@ -1,17 +1,14 @@
 "use client";
 
-import { ChevronRight, Clock, Crown, X as XIcon } from "lucide-react";
+import { ChevronRight, Clock, Crown } from "lucide-react";
 import Link from "next/link";
-import { useActionState } from "react";
 
-import { cancelTicketAction, type CancelState } from "./actions";
+import { LeaveQueueButton } from "@/components/LeaveQueueButton";
 import { StatusPill } from "@/components/ui/StatusPill";
 import type { components } from "@/lib/api/schema";
 import type { TicketQueueSnapshot } from "@/lib/ticket-snapshot";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
-
-const initial: CancelState = undefined;
 
 function relativeTime(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -33,12 +30,6 @@ export function TicketCard({
   ticket: Ticket;
   snapshot: TicketQueueSnapshot | null;
 }) {
-  const action = cancelTicketAction.bind(
-    null,
-    ticket.service_item_id,
-    ticket.id,
-  );
-  const [state, dispatch, pending] = useActionState(action, initial);
   const cancellable =
     ticket.status === "waiting" || ticket.status === "pending_approval";
 
@@ -96,38 +87,14 @@ export function TicketCard({
         <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />
       </Link>
 
-      {state?.error ? (
-        <p
-          className="border-t border-border px-4 py-2 text-xs text-danger"
-          role="alert"
-        >
-          {state.error}
-        </p>
-      ) : null}
-
       {cancellable ? (
-        <form
-          action={dispatch}
-          className="border-t border-border"
-          onSubmit={(e) => {
-            if (
-              !window.confirm(
-                "Leave the queue? You will lose your place in line.",
-              )
-            ) {
-              e.preventDefault();
-            }
-          }}
-        >
-          <button
-            type="submit"
-            disabled={pending}
-            className="flex h-10 w-full cursor-pointer items-center justify-center gap-1.5 px-3 text-xs font-semibold text-rose-800 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <XIcon className="h-3.5 w-3.5" aria-hidden />
-            {pending ? "Leaving…" : "Leave queue"}
-          </button>
-        </form>
+        <div className="border-t border-border">
+          <LeaveQueueButton
+            serviceId={ticket.service_item_id}
+            ticketId={ticket.id}
+            variant="compact"
+          />
+        </div>
       ) : null}
     </li>
   );

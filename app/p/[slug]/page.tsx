@@ -2,6 +2,7 @@ import { Clock, Globe, Mail, MapPin, Phone, Star, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { JoinButton } from "./JoinButton";
+import { ServiceLinePreviewCard } from "@/components/ServiceLinePreviewCard";
 import { TrackDemandEvent } from "@/components/TrackDemandEvent";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -236,7 +237,10 @@ export default async function ProviderPage({
                     </div>
                   </div>
                 </div>
-                <div className="border-t border-border px-4 py-3">
+                <div className="border-t border-border px-4 py-3 flex flex-col gap-3">
+                  {s.is_active ? (
+                    <ServiceLinePreviewCard serviceItemId={s.id} />
+                  ) : null}
                   <JoinButton
                     serviceId={s.id}
                     serviceName={s.name}

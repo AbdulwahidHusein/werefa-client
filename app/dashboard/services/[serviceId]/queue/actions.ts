@@ -447,12 +447,26 @@ export async function listTicketJoinDocumentsAction(
   serviceId: string,
   ticketId: string,
 ): Promise<
-  | { data: { id: string; label: string; filename: string; download_url: string }[] }
+  | {
+      data: {
+        id: string;
+        label: string;
+        filename: string;
+        content_type: string;
+        download_url: string;
+      }[];
+    }
   | { error: string }
 > {
   try {
     const res = await apiFetch<{
-      data: { id: string; label: string; filename: string; download_url: string }[];
+      data: {
+        id: string;
+        label: string;
+        filename: string;
+        content_type: string;
+        download_url: string;
+      }[];
       count: number;
     }>(`/service-items/${serviceId}/tickets/${ticketId}/documents`, {
       method: "GET",

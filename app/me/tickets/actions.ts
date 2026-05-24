@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
 import { requireMe } from "@/lib/dal";
+import { rethrowNavigationError } from "@/lib/rethrow-navigation";
 
 type QueueEntryPublic = components["schemas"]["QueueEntryPublic"];
 
@@ -25,9 +26,10 @@ export async function cancelTicketAction(
     );
     revalidatePath("/me/tickets");
     revalidatePath(`/me/tickets/${ticketId}`);
-    redirect("/me/tickets?left=1");
   } catch (err) {
+    rethrowNavigationError(err);
     if (err instanceof ApiRequestError) return { error: err.detail };
     return { error: "Could not cancel. Try again." };
   }
+  redirect("/me/tickets?left=1");
 }

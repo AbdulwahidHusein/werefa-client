@@ -48,5 +48,11 @@ export function useTicketSnapshot({
     return unsub;
   }, [wsClient, refresh]);
 
+  // Fallback poll so counts stay fresh if the socket drops.
+  useEffect(() => {
+    const timer = setInterval(refresh, 20_000);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
   return { snapshot, loading, refresh };
 }

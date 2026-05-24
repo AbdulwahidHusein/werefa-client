@@ -34,10 +34,14 @@ export function TicketQueueInsights({
   snapshot,
   status,
   loading,
+  variant = "holder",
+  acceptingRemoteJoins,
 }: {
   snapshot: TicketQueueSnapshot | null;
   status: string;
   loading?: boolean;
+  variant?: "holder" | "preview";
+  acceptingRemoteJoins?: boolean;
 }) {
   if (loading && !snapshot) {
     return (
@@ -48,13 +52,25 @@ export function TicketQueueInsights({
   }
   if (!snapshot) return null;
 
-  const inLine = status === "waiting" || status === "serving";
-  const positionLabel =
-    status === "serving"
+  const isPreview = variant === "preview";
+  const isPendingApproval = status === "pending_approval";
+  const inLine =
+    isPreview || status === "waiting" || status === "serving" || isPendingApproval;
+  const positionLabel = isPreview
+    ? "Before you join"
+    : status === "serving"
       ? "Now serving"
-      : snapshot.your_position != null
-        ? `#${snapshot.your_position} in line`
-        : "In queue";
+      : isPendingApproval
+        ? "Awaiting approval"
+        : snapshot.your_position != null
+          ? `#${snapshot.your_position} in line`
+          : "In queue";
+
+  const statusPill = isPreview
+    ? acceptingRemoteJoins === false
+      ? "paused"
+      : "open"
+    : status;
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-surface">
@@ -81,18 +97,24 @@ export function TicketQueueInsights({
             Queue line
           </p>
         </div>
-        <StatusPill status={status} />
+        <StatusPill status={statusPill} />
       </div>
 
       {inLine ? (
         <div className="grid grid-cols-2 gap-2 p-4">
           <Stat
-            label="Your spot"
+            label={isPreview ? "If you join now" : "Your spot"}
             value={positionLabel}
             sub={
-              snapshot.people_ahead > 0
-                ? `${snapshot.people_ahead} ahead of you`
-                : "You're at the front"
+              isPreview
+                ? snapshot.waiting_count > 0
+                  ? `${snapshot.waiting_count} people waiting`
+                  : "Line is empty"
+                : isPendingApproval
+                  ? "Shown once the business approves you"
+                  : snapshot.people_ahead > 0
+                    ? `${snapshot.people_ahead} ahead of you`
+                    : "You're at the front"
             }
           />
           <Stat
@@ -125,7 +147,7 @@ export function TicketQueueInsights({
         </p>
       ) : null}
 
-      {snapshot.ahead_preview.length > 0 ? (
+      {!isPreview && snapshot.ahead_preview.length > 0 ? (
         <div className="border-t border-border p-4">
           <p className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
             <Users className="h-3.5 w-3.5" aria-hidden />

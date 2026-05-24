@@ -18,13 +18,22 @@ export function useTicketStream(initialTicket: Ticket, token: string | null) {
   useEffect(() => {
     if (!client) return;
 
-    const unsubscribe = client.onMessage((msg) => {
-      // Typically backend sends {"type": "queue_updated", "status": "serving", ...}
-      if (msg.ticket_id === ticket.id) {
+    const unsubscribe = client.onMessage((raw) => {
+      const msg = raw as {
+        type?: string;
+        ticket_id?: string;
+        status?: string;
+        reason?: string;
+      };
+      if (msg.type !== "queue_updated") return;
+      if (msg.ticket_id === ticket.id && msg.status) {
         setTicket((prev) => ({
           ...prev,
           status: msg.status ?? prev.status,
         }));
+        if (msg.status === "cancelled") {
+          window.location.href = "/me/tickets?left=1";
+        }
       }
     });
     return () => { unsubscribe(); };

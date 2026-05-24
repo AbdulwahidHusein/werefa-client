@@ -1,9 +1,8 @@
 "use client";
 
-import { Bell, Clock, X as XIcon } from "lucide-react";
-import { useActionState } from "react";
+import { Bell, Clock } from "lucide-react";
 
-import { cancelTicketAction, type CancelState } from "../actions";
+import { LeaveQueueButton } from "@/components/LeaveQueueButton";
 import { ReviewForm } from "./ReviewForm";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { TicketQueueInsights } from "@/components/TicketQueueInsights";
@@ -16,7 +15,6 @@ import { useLocationTracking } from "@/hooks/useLocationTracking";
 import { LocationShareStatus } from "@/components/LocationShareStatus";
 
 type Ticket = components["schemas"]["QueueEntryPublic"];
-const initial: CancelState = undefined;
 
 function relativeTime(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -48,16 +46,6 @@ export function LiveTicket({
   });
   const displaySnapshot = snapshot ?? initialSnapshot;
 
-  const cancelAction = cancelTicketAction.bind(
-    null,
-    ticket.service_item_id,
-    ticket.id,
-  );
-  const [cancelState, cancelDispatch, cancelPending] = useActionState(
-    cancelAction,
-    initial,
-  );
-
   const status = ticket.status;
   const isServing = status === "serving";
   const isPendingApproval = status === "pending_approval";
@@ -75,12 +63,25 @@ export function LiveTicket({
   const lineName = displaySnapshot?.service_name;
 
   return (
-    <div className="flex flex-col gap-4 pb-24">
+    <div className="flex flex-col gap-4 pb-8">
       <TicketQueueInsights
         snapshot={displaySnapshot}
         status={status}
         loading={snapshotLoading && !displaySnapshot}
       />
+
+      {isCallable ? (
+        <LeaveQueueButton
+          serviceId={ticket.service_item_id}
+          ticketId={ticket.id}
+          variant="card"
+        />
+      ) : isServing ? (
+        <p className="rounded-2xl border border-border bg-surface px-4 py-3 text-center text-sm text-muted">
+          You&apos;re being served — ask the staff at the counter if you need to
+          step out of the line.
+        </p>
+      ) : null}
 
       {isServing ? (
         <div className="flex flex-col items-center gap-3 rounded-3xl bg-emerald-600 p-8 text-center text-white shadow-lg">
@@ -143,39 +144,6 @@ export function LiveTicket({
             ? "Connecting to live updates…"
             : "Connection paused — retrying…"}
         </p>
-      ) : null}
-
-      {cancelState?.error ? (
-        <p className="text-sm text-danger" role="alert">
-          {cancelState.error}
-        </p>
-      ) : null}
-
-      {isCallable ? (
-        <form
-          action={cancelDispatch}
-          onSubmit={(e) => {
-            if (
-              !window.confirm(
-                "Leave the queue? You will lose your place in line and need to join again.",
-              )
-            ) {
-              e.preventDefault();
-            }
-          }}
-        >
-          <button
-            type="submit"
-            disabled={cancelPending}
-            className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 text-sm font-semibold text-rose-900 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <XIcon className="h-4 w-4" aria-hidden />
-            {cancelPending ? "Leaving queue…" : "Leave queue"}
-          </button>
-          <p className="mt-1.5 text-center text-[10px] text-muted">
-            You can rejoin later if the line is still open
-          </p>
-        </form>
       ) : null}
 
       {status === "completed" ? <ReviewForm ticketId={ticket.id} /> : null}

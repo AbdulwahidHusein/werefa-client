@@ -9,6 +9,7 @@ import {
   updateServiceAction,
   type ServiceFormState,
 } from "./actions";
+import { ServiceJoinRulesFields } from "./ServiceJoinRulesFields";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import type { components } from "@/lib/api/schema";
@@ -21,6 +22,10 @@ type Service = components["schemas"]["ServiceItemPublic"] & {
   is_private?: boolean;
   allow_vip?: boolean;
   vip_code?: string | null;
+  requires_join_approval?: boolean;
+  approval_queue_order?: "preserve_register_time" | "approval_time";
+  requires_join_documents?: boolean;
+  join_document_requirements?: unknown;
 };
 
 const SERVICE_CATEGORIES = [
@@ -261,6 +266,15 @@ export function ServiceForm({ service }: { service?: Service }) {
             </div>
           ) : null}
         </section>
+
+        <ServiceJoinRulesFields
+          initialRequiresApproval={service?.requires_join_approval ?? false}
+          initialApprovalQueueOrder={
+            service?.approval_queue_order ?? "preserve_register_time"
+          }
+          initialRequiresDocuments={service?.requires_join_documents ?? false}
+          initialDocumentRequirements={service?.join_document_requirements}
+        />
 
         {state?.error ? (
           <p className="text-sm text-danger" role="alert">

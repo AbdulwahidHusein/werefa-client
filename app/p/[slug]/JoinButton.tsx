@@ -4,6 +4,7 @@ import { Crown } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 
 import { joinQueueAction, type JoinState } from "./actions";
+import { ServiceLinePreviewCard } from "@/components/ServiceLinePreviewCard";
 import { JoinDocumentUploadFields } from "@/components/JoinDocumentUploadFields";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -83,6 +84,8 @@ export function JoinButton({
             Adding you to the line for{" "}
             <strong className="text-foreground">{serviceName}</strong>.
           </p>
+
+          <ServiceLinePreviewCard serviceItemId={serviceId} enabled={open} />
 
           {isPrivate ? (
             <Field

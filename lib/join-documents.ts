@@ -41,21 +41,19 @@ export function acceptForKind(kind: string): string {
   return "image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf";
 }
 
-export function parseRequirements(
-  raw: unknown,
-): JoinDocumentRequirement[] {
+export function parseRequirements(raw: unknown): JoinDocumentRequirement[] {
   if (!Array.isArray(raw)) return [];
-  return raw
-    .map((item) => {
-      if (!item || typeof item !== "object") return null;
-      const o = item as Record<string, unknown>;
-      const label = String(o.label ?? "").trim();
-      const kind = String(o.kind ?? "any") as JoinDocumentKind;
-      if (!label) return null;
-      if (!["image", "pdf", "any"].includes(kind)) return null;
-      return { label, kind, kind_hint: kindHint(kind) };
-    })
-    .filter((x): x is JoinDocumentRequirement => x !== null);
+  const out: JoinDocumentRequirement[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const label = String(o.label ?? "").trim();
+    const kind = String(o.kind ?? "any") as JoinDocumentKind;
+    if (!label) continue;
+    if (!["image", "pdf", "any"].includes(kind)) continue;
+    out.push({ label, kind, kind_hint: kindHint(kind) });
+  }
+  return out;
 }
 
 export function clientMimeAllowed(file: File, kind: string): boolean {

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
 import { requireMe } from "@/lib/dal";
+import { rethrowNavigationError } from "@/lib/rethrow-navigation";
 
 type QueueEntryPublic = components["schemas"]["QueueEntryPublic"];
 
@@ -40,6 +41,8 @@ export async function joinQueueAction(
   }
 
   const useMultipart = Number.isFinite(docCount) && docCount > 0;
+
+  let destination = "/me/tickets";
 
   try {
     let ticket: QueueEntryPublic & { status?: string };
@@ -77,15 +80,17 @@ export async function joinQueueAction(
         },
       );
     }
-    if (ticket.status === "pending_approval") {
-      redirect(`/me/tickets/${ticket.id}?pending=1`);
-    }
+    destination =
+      ticket.status === "pending_approval"
+        ? `/me/tickets/${ticket.id}?pending=1`
+        : `/me/tickets/${ticket.id}`;
   } catch (err) {
+    rethrowNavigationError(err);
     if (err instanceof ApiRequestError) {
       return { error: err.detail, code };
     }
     return { error: "Something went wrong. Try again.", code };
   }
 
-  redirect("/me/tickets");
+  redirect(destination);
 }
