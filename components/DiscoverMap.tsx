@@ -3,12 +3,18 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { ProviderLogo } from "@/components/ProviderLogo";
 import { GOOGLE_MAPS_API_KEY } from "@/lib/env";
+import { formatLocation } from "@/lib/ethiopia-locations";
 import { formatWait, loadColor } from "@/lib/format";
 import type { components } from "@/lib/api/schema";
 import type { Coords } from "@/lib/geo";
 
-type Provider = components["schemas"]["ProviderDiscoveryPublic"];
+type Provider = components["schemas"]["ProviderDiscoveryPublic"] & {
+  region?: string | null;
+  city?: string | null;
+  profile_image_url?: string | null;
+};
 
 type GoogleMaps = {
   maps: {
@@ -161,27 +167,38 @@ export function DiscoverMap({
     );
   }
 
+  const selectedLocation = selected
+    ? formatLocation(selected.region, selected.city)
+    : "";
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3">
       <div
         ref={containerRef}
-        className="h-[min(52vh,420px)] w-full overflow-hidden rounded-2xl border border-border bg-zinc-100"
+        className="h-[min(50dvh,320px)] w-full min-w-0 overflow-hidden rounded-2xl border border-border bg-zinc-100 sm:h-[min(55vh,400px)] lg:h-[min(70vh,560px)] lg:min-h-[400px]"
         aria-label="Map of nearby businesses"
       />
       {selected ? (
         <Link
           href={`/p/${selected.slug}`}
-          className="block rounded-2xl border border-accent/30 bg-accent/5 p-4 transition-colors hover:bg-accent/10"
+          className="flex items-center gap-3 rounded-2xl border border-accent/30 bg-accent/5 p-3 transition-colors hover:bg-accent/10 sm:p-4"
         >
-          <p className="font-semibold">{selected.biz_name}</p>
-          <p className="mt-1 text-sm text-muted">
-            <span
-              className={`mr-1.5 inline-block h-2 w-2 rounded-full ${loadColor(selected.load_factor)}`}
-            />
-            {formatWait(selected.estimated_wait_minutes)} · {selected.active_tickets} in
-            line
-            {selected.city ? ` · ${selected.city}` : ""}
-          </p>
+          <ProviderLogo
+            name={selected.biz_name}
+            imageUrl={selected.profile_image_url}
+            size="sm"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold">{selected.biz_name}</p>
+            <p className="mt-0.5 text-sm text-muted">
+              <span
+                className={`mr-1.5 inline-block h-2 w-2 rounded-full ${loadColor(selected.load_factor)}`}
+              />
+              {formatWait(selected.estimated_wait_minutes)} · {selected.active_tickets}{" "}
+              in line
+              {selectedLocation ? ` · ${selectedLocation}` : ""}
+            </p>
+          </div>
         </Link>
       ) : (
         <p className="text-center text-xs text-muted">Tap a pin to see details</p>

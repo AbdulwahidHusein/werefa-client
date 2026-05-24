@@ -43,12 +43,15 @@ export function SeekerShell({
   const pathname = usePathname();
   const { unreadCount } = useUnreadNotificationCount();
 
+  const isProviderPage = pathname.startsWith("/p/");
+  const contentWidth = wide || isProviderPage ? "max-w-7xl w-full" : "max-w-md w-full";
+
   return (
-    <div className="flex min-h-dvh flex-col px-4 pt-[max(1rem,env(safe-area-inset-top))]">
+    <div
+      className={`flex min-h-dvh flex-col px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top))]`}
+    >
       <div
-        className={`mx-auto flex w-full flex-1 flex-col pb-4 ${
-          wide ? "max-w-6xl" : "max-w-md"
-        }`}
+        className={`mx-auto flex w-full flex-1 flex-col pb-4 ${contentWidth}`}
       >
         {children}
       </div>

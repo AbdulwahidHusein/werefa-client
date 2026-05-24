@@ -1069,8 +1069,12 @@ export interface components {
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
+            /** Region */
+            region?: string | null;
             /** City */
             city?: string | null;
+            /** Profile Image Url */
+            profile_image_url?: string | null;
             /**
              * Is Private
              * @default false
@@ -1134,8 +1138,12 @@ export interface components {
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
+            /** Region */
+            region?: string | null;
             /** City */
             city?: string | null;
+            /** Profile Image Url */
+            profile_image_url?: string | null;
             /**
              * Is Private
              * @default false

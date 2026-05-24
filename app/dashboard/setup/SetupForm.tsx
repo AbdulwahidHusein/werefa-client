@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 
 import { setupBusinessAction, type SetupState } from "../actions";
+import { RegionCitySelect } from "@/components/RegionCitySelect";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import {
@@ -60,6 +61,7 @@ export function SetupForm() {
   const [slugTouched, setSlugTouched] = useState(Boolean(f?.slug));
   const [category, setCategory] = useState(f?.category ?? "");
   const [description, setDescription] = useState(f?.description ?? "");
+  const [region, setRegion] = useState(f?.region ?? "");
   const [city, setCity] = useState(f?.city ?? "");
   const [address, setAddress] = useState(f?.address ?? "");
   const [phone, setPhone] = useState(f?.phone ?? "");
@@ -111,7 +113,7 @@ export function SetupForm() {
 
       <Section
         title="Identity"
-        description="How customers will recognize you on Werefa and in search."
+        description="How customers will recognize you on Werefa and in search. You can upload your logo after setup in Settings → Profile."
       >
         <Field
           label="Business name"
@@ -180,16 +182,14 @@ export function SetupForm() {
         title="Contact & address"
         description="Shown on your public business page when customers browse or join."
       >
+        <RegionCitySelect
+          region={region}
+          city={city}
+          onRegionChange={setRegion}
+          onCityChange={setCity}
+          required
+        />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field
-            label="City"
-            name="city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Addis Ababa"
-            maxLength={100}
-            autoComplete="address-level2"
-          />
           <Field
             label="Phone"
             name="phone"

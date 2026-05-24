@@ -10,6 +10,7 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 
 export async function uploadProviderProfileImageAction(
   providerId: string,
+  providerSlug: string,
   _prev: ImageUploadState,
   formData: FormData,
 ): Promise<ImageUploadState> {
@@ -26,6 +27,10 @@ export async function uploadProviderProfileImageAction(
     await apiFetch(`/providers/${providerId}/profile-image`, { method: "POST", body });
     revalidatePath("/dashboard/settings/profile");
     revalidatePath("/dashboard");
+    revalidatePath("/");
+    if (providerSlug) {
+      revalidatePath(`/p/${providerSlug}`);
+    }
     return { success: true };
   } catch (err) {
     if (err instanceof ApiRequestError) return { error: err.detail || "Upload failed." };
@@ -56,6 +61,7 @@ export async function updateProviderAction(
   const biz_name = str(formData, "biz_name");
   const category = str(formData, "category") || null;
   const description = str(formData, "description") || null;
+  const region = str(formData, "region") || null;
   const city = str(formData, "city") || null;
   const address = str(formData, "address") || null;
   const phone = str(formData, "phone") || null;
@@ -86,6 +92,7 @@ export async function updateProviderAction(
         biz_name,
         category,
         description,
+        region,
         city,
         address,
         phone,
@@ -102,6 +109,7 @@ export async function updateProviderAction(
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/settings/profile");
     revalidatePath("/dashboard/services");
+    revalidatePath("/");
 
     return { success: true };
   } catch (err) {

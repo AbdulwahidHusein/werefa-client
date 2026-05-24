@@ -1,13 +1,15 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Building2, Info, Loader2, Save } from "lucide-react";
+import { Info, Loader2, Save } from "lucide-react";
+import { ProviderLogo } from "@/components/ProviderLogo";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { ProfileImageUpload } from "@/components/ProfileImageUpload";
+import { BusinessLogoUpload } from "@/components/BusinessLogoUpload";
+import { RegionCitySelect } from "@/components/RegionCitySelect";
 import {
   updateProviderAction,
   uploadProviderProfileImageAction,
@@ -24,6 +26,7 @@ type ExtendedProvider = MyProvider & {
   profile_image_url?: string | null;
   category?: string | null;
   description?: string | null;
+  region?: string | null;
   city?: string | null;
   address?: string | null;
   phone?: string | null;
@@ -79,7 +82,11 @@ export function ProviderProfileForm({
   readonly?: boolean;
 }) {
   const action = updateProviderAction.bind(null, provider.id);
-  const uploadAction = uploadProviderProfileImageAction.bind(null, provider.id);
+  const uploadAction = uploadProviderProfileImageAction.bind(
+    null,
+    provider.id,
+    provider.slug,
+  );
   const [state, formAction, pending] = useActionState<ProfileUpdateState, FormData>(
     action,
     undefined,
@@ -88,6 +95,7 @@ export function ProviderProfileForm({
   const [bizName, setBizName] = useState(provider.biz_name ?? "");
   const [category, setCategory] = useState(provider.category ?? "");
   const [description, setDescription] = useState(provider.description ?? "");
+  const [region, setRegion] = useState(provider.region ?? "");
   const [city, setCity] = useState(provider.city ?? "");
   const [address, setAddress] = useState(provider.address ?? "");
   const [phone, setPhone] = useState(provider.phone ?? "");
@@ -112,6 +120,7 @@ export function ProviderProfileForm({
     setBizName(provider.biz_name ?? "");
     setCategory(provider.category ?? "");
     setDescription(provider.description ?? "");
+    setRegion(provider.region ?? "");
     setCity(provider.city ?? "");
     setAddress(provider.address ?? "");
     setPhone(provider.phone ?? "");
@@ -128,6 +137,7 @@ export function ProviderProfileForm({
     bizName !== (provider.biz_name ?? "") ||
     category !== (provider.category ?? "") ||
     description !== (provider.description ?? "") ||
+    region !== (provider.region ?? "") ||
     city !== (provider.city ?? "") ||
     address !== (provider.address ?? "") ||
     phone !== (provider.phone ?? "") ||
@@ -156,44 +166,28 @@ export function ProviderProfileForm({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ── Logo / Profile Image ── */}
+      {/* ── Business logo ── */}
       <section className="flex flex-col gap-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Business Logo</h3>
-        <div className="rounded-2xl border border-border bg-surface overflow-hidden">
-          <div className="flex items-center gap-4 p-4">
-            {/* Logo preview */}
-            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-border bg-background">
-              {provider.profile_image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={provider.profile_image_url}
-                  alt="Business logo"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-accent/10 text-accent">
-                  <Building2 className="h-8 w-8" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">{provider.biz_name}</p>
-              <p className="text-xs text-muted mt-0.5">
-                Your logo appears on the public business page and search results.
-              </p>
-              <p className="text-xs text-muted mt-0.5">JPEG, PNG or WebP · max 5 MB</p>
-            </div>
-          </div>
-          {!readonly ? (
-            <div className="border-t border-border px-4 py-3">
-              <ProfileImageUpload
-                label=""
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+          Business logo
+        </h3>
+        <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-surface to-background">
+          {readonly ? (
+            <div className="flex justify-center p-8">
+              <ProviderLogo
+                name={provider.biz_name}
                 imageUrl={provider.profile_image_url}
-                uploadAction={uploadAction}
-                fallbackName={provider.biz_name}
+                size="xl"
+                variant="upload"
               />
             </div>
-          ) : null}
+          ) : (
+            <BusinessLogoUpload
+              businessName={provider.biz_name}
+              imageUrl={provider.profile_image_url}
+              uploadAction={uploadAction}
+            />
+          )}
         </div>
       </section>
 
@@ -297,27 +291,24 @@ export function ProviderProfileForm({
         <section className="flex flex-col gap-4">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Contact &amp; Location</h3>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field
-              label="City"
-              name="city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              maxLength={100}
-              placeholder="Addis Ababa"
-              disabled={readonly}
-            />
-            <Field
-              label="Phone"
-              name="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              maxLength={20}
-              placeholder="+251 91 234 5678"
-              disabled={readonly}
-            />
-          </div>
+          <RegionCitySelect
+            region={region}
+            city={city}
+            onRegionChange={setRegion}
+            onCityChange={setCity}
+            disabled={readonly}
+            required
+          />
+          <Field
+            label="Phone"
+            name="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            maxLength={20}
+            placeholder="+251 91 234 5678"
+            disabled={readonly}
+          />
 
           <Field
             label="Street Address"

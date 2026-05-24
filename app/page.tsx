@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Discover } from "@/components/Discover";
-import { Button } from "@/components/ui/Button";
 import { getMe } from "@/lib/dal";
 import { resolveAppRole } from "@/lib/navigation";
 import { getSessionToken } from "@/lib/session";
@@ -14,50 +13,55 @@ export default async function Home() {
   const isSeeker = me && resolveAppRole(me) === "seeker";
 
   return (
-    <>
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <span className="text-lg font-semibold tracking-tight">Werefa</span>
-          <p className="mt-0.5 text-sm text-muted">Find a queue near you</p>
+    <div className="flex w-full min-w-0 flex-col overflow-x-hidden">
+      <header className="mb-2 flex min-w-0 items-center justify-between gap-2 sm:mb-5 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="truncate text-base font-bold tracking-tight sm:text-2xl lg:text-3xl">
+            Discover
+          </h1>
+          <p className="mt-0.5 hidden text-sm text-muted sm:block">
+            Find queues near you — filter by region, city, or search.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {isSeeker ? (
             <Link
               href="/me/tickets"
-              className="rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-surface"
+              className="rounded-lg px-2 py-1.5 text-xs font-medium text-foreground hover:bg-surface sm:rounded-xl sm:border sm:border-border sm:px-3 sm:py-2 sm:text-sm"
             >
               My queue
             </Link>
           ) : null}
           {!me ? (
-            <Link
-              href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface hover:text-foreground"
-            >
-              Log in
-            </Link>
+            <>
+              <Link
+                href="/login"
+                className="rounded-lg px-2 py-1.5 text-xs font-medium text-muted hover:bg-surface hover:text-foreground sm:px-3 sm:py-2 sm:text-sm"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent-hover sm:px-4 sm:py-2 sm:text-sm"
+              >
+                Sign up
+              </Link>
+            </>
           ) : null}
         </div>
       </header>
 
       {!me ? (
-        <div className="mb-5 rounded-2xl border border-border bg-surface p-4">
-          <p className="text-sm font-medium">Skip the line</p>
-          <p className="mt-1 text-sm text-muted">
-            Browse queues on the map or list. Sign in to join a line.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href="/signup" className="contents">
-              <Button>Create account</Button>
-            </Link>
-            <Link href="/login" className="contents">
-              <Button variant="secondary">Log in</Button>
-            </Link>
-          </div>
-        </div>
+        <p className="mb-2 text-[11px] leading-snug text-muted sm:mb-4 sm:hidden">
+          Browse queues below.{" "}
+          <Link href="/signup" className="font-medium text-accent">
+            Sign up
+          </Link>{" "}
+          to join from your phone.
+        </p>
       ) : null}
 
       <Discover />
-    </>
+    </div>
   );
 }

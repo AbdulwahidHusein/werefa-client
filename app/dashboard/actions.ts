@@ -13,6 +13,7 @@ export type SetupFields = {
   slug?: string;
   category?: string;
   description?: string;
+  region?: string;
   city?: string;
   address?: string;
   phone?: string;
@@ -58,6 +59,7 @@ export async function setupBusinessAction(
   const slug = str(formData, "slug").toLowerCase();
   const category = str(formData, "category") || null;
   const description = str(formData, "description") || null;
+  const region = str(formData, "region") || null;
   const city = str(formData, "city") || null;
   const address = str(formData, "address") || null;
   const phone = str(formData, "phone") || null;
@@ -75,6 +77,7 @@ export async function setupBusinessAction(
     slug,
     category: category ?? "",
     description: description ?? "",
+    region: region ?? "",
     city: city ?? "",
     address: address ?? "",
     phone: phone ?? "",
@@ -136,6 +139,7 @@ export async function setupBusinessAction(
         biz_name,
         category,
         description,
+        region,
         city,
         address,
         phone,
