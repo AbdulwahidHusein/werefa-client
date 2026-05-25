@@ -9,6 +9,7 @@ export type Review = {
   was_estimate_accurate: boolean;
   comment?: string | null;
   created_at?: string | null;
+  reviewer_name?: string | null;
 };
 
 export function ReviewsList({ reviews }: { reviews: Review[] }) {
@@ -62,7 +63,9 @@ export function ReviewsList({ reviews }: { reviews: Review[] }) {
           </div>
           
           <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
-            <span className="text-xs font-medium text-foreground">Anonymous Customer</span>
+            <span className="text-xs font-medium text-foreground">
+              {review.reviewer_name?.trim() || "Anonymous customer"}
+            </span>
             <span className="text-xs text-muted">
               Estimate was {review.was_estimate_accurate ? "accurate" : "inaccurate"}
             </span>

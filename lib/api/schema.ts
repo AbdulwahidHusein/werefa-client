@@ -1336,6 +1336,8 @@ export interface components {
             service_item_id: string;
             /** Created At */
             created_at?: string | null;
+            /** Reviewer Name */
+            reviewer_name?: string | null;
         };
         /** ReviewsPublic */
         ReviewsPublic: {
