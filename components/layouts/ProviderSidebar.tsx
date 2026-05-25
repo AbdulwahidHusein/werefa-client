@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logoutAction } from "@/app/(auth)/actions";
 import {
   BarChart3,
   Building2,
@@ -136,14 +137,16 @@ export function ProviderSidebar({
           <LayoutList className="h-4 w-4 shrink-0" />
           Customer view
         </Link>
-        <Link
-          href="/logout"
-          onClick={onNavigate}
-          className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs text-muted hover:bg-rose-50 hover:text-rose-700 transition-colors"
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          Sign out
-        </Link>
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            onClick={onNavigate}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs text-muted hover:bg-rose-50 hover:text-rose-700 transition-colors"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            Sign out
+          </button>
+        </form>
       </div>
     </aside>
   );
