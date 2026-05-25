@@ -39,8 +39,9 @@ export function AdminProviderReview({
   const [showRejectForm, setShowRejectForm] = useState(false);
 
   const state = vState ?? rState;
-  const canVerify =
-    verificationStatus !== "verified" && (requirements?.ready_for_review ?? false);
+  const canVerify = verificationStatus !== "verified";
+  const missingDocs =
+    requirements && !requirements.ready_for_review && !requirements.is_verified;
   const showReject = verificationStatus !== "rejected";
 
   const previewDocs = documents.map((d) => ({
@@ -62,8 +63,9 @@ export function AdminProviderReview({
           <StatusPill status={verificationStatus} />
         </div>
         <p className="text-xs text-muted leading-relaxed">
-          Review documents uploaded by the business. Approve only when all required types are
-          present. The owner receives an email on approval or rejection.
+          Review uploaded documents when available. You can approve or reject at your
+          discretion — documents are not required to verify. The owner receives an email on
+          approval or rejection.
         </p>
         {lastRejectionReason ? (
           <p className="text-xs text-rose-900 bg-rose-50 border border-rose-100 rounded-xl p-3">
@@ -78,9 +80,10 @@ export function AdminProviderReview({
           Document checklist
         </h3>
         <VerificationChecklist requirements={requirements} />
-        {requirements && !requirements.ready_for_review ? (
+        {missingDocs ? (
           <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-xl p-3">
-            Cannot approve until all required documents are uploaded by the business.
+            Some required document types are not uploaded yet. You can still approve if you
+            have verified this business another way.
           </p>
         ) : null}
       </section>
@@ -152,11 +155,7 @@ export function AdminProviderReview({
                 type="submit"
                 disabled={!canVerify || vPending || rPending}
                 className="flex h-12 w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-700 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
-                title={
-                  canVerify
-                    ? "Approve business"
-                    : "Upload required documents before approving"
-                }
+                title="Approve business"
               >
                 <Check className="h-4 w-4" />
                 {vPending ? "Approving…" : "Approve business"}

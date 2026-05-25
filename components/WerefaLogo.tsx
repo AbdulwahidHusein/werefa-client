@@ -36,11 +36,7 @@ export function WerefaLogo({
 
   const img = (
     <span
-      className={`inline-flex items-center ${
-        isAuth
-          ? "w-full max-w-[5.5rem] sm:max-w-[6.5rem] md:max-w-[7.25rem]"
-          : "w-auto"
-      } ${className}`.trim()}
+      className={`block w-full ${isAuth ? "max-w-[5.5rem] sm:max-w-[6.5rem] md:max-w-[7.25rem]" : ""}`}
       style={!isAuth ? { maxWidth: dim.w } : undefined}
     >
       <Image
@@ -56,19 +52,21 @@ export function WerefaLogo({
     </span>
   );
 
+  const wrapperClass = [
+    href ? "inline-flex rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" : "inline-flex",
+    centered ? "mx-auto" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   if (href) {
     return (
-      <Link
-        href={href}
-        onClick={onClick}
-        className={`inline-flex rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-          centered ? "mx-auto" : ""
-        }`}
-      >
+      <Link href={href} onClick={onClick} className={wrapperClass}>
         {img}
       </Link>
     );
   }
 
-  return img;
+  return <span className={wrapperClass}>{img}</span>;
 }
