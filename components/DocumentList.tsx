@@ -2,36 +2,39 @@
 
 import { useState } from "react";
 import { FileText, Download, Loader2 } from "lucide-react";
-import type { components } from "@/lib/api/schema";
+import { kindLabel } from "@/lib/verification-documents";
 
 export type ProviderDocument = {
   id: string;
   provider_id: string;
+  document_kind?: string;
   filename: string;
   created_at?: string | null;
   url?: string;
 };
 
-function parseDocumentInfo(filename: string) {
-  const match = filename.match(/^\[(License|Permit|Insurance|Other)\]\s*(.*)$/i);
-  if (match) {
+function parseDocumentInfo(doc: ProviderDocument) {
+  if (doc.document_kind) {
     return {
-      type: match[1],
-      cleanName: match[2],
+      type: kindLabel(doc.document_kind),
+      cleanName: doc.filename,
     };
   }
-  return {
-    type: "Other",
-    cleanName: filename,
-  };
+  const match = doc.filename.match(/^\[(License|Permit|Insurance|Other)\]\s*(.*)$/i);
+  if (match) {
+    return { type: match[1], cleanName: match[2] };
+  }
+  return { type: "Document", cleanName: doc.filename };
 }
 
 export function DocumentList({
   documents,
   providerId,
+  emptyMessage = "No documents uploaded yet.",
 }: {
   documents: ProviderDocument[];
   providerId: string;
+  emptyMessage?: string;
 }) {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
@@ -42,21 +45,20 @@ export function DocumentList({
   ) {
     setDownloadingId(docId);
     try {
-      const { cleanName } = parseDocumentInfo(filename);
-      const href =
-        directUrl ??
-        `/api/providers/${providerId}/documents/${docId}`;
-
+      const { cleanName } = parseDocumentInfo({ id: docId, provider_id: providerId, filename });
+      const href = directUrl ?? `/api/providers/${providerId}/documents/${docId}`;
       const link = document.createElement("a");
       link.href = href;
       link.setAttribute("download", cleanName);
-      if (directUrl) link.target = "_blank";
-      link.rel = "noopener noreferrer";
+      if (directUrl) {
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+      }
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
     } catch {
-      alert("Failed to download document. Please try again.");
+      alert("Failed to open document. Please try again.");
     } finally {
       setDownloadingId(null);
     }
@@ -66,10 +68,7 @@ export function DocumentList({
     return (
       <div className="rounded-2xl border border-dashed border-border p-8 text-center bg-surface/50">
         <FileText className="h-8 w-8 text-muted mx-auto mb-2" />
-        <p className="text-sm font-medium">No documents uploaded yet</p>
-        <p className="mt-1 text-xs text-muted">
-          KYC files are uploaded by system administrators during registration checks.
-        </p>
+        <p className="text-sm font-medium">{emptyMessage}</p>
       </div>
     );
   }
@@ -78,7 +77,7 @@ export function DocumentList({
     <div className="overflow-hidden rounded-2xl border border-border bg-background">
       <ul className="divide-y divide-border/60">
         {documents.map((doc) => {
-          const { type, cleanName } = parseDocumentInfo(doc.filename);
+          const { type, cleanName } = parseDocumentInfo(doc);
           const uploadDate = doc.created_at
             ? new Date(doc.created_at).toLocaleDateString(undefined, {
                 year: "numeric",
@@ -86,8 +85,6 @@ export function DocumentList({
                 day: "numeric",
               })
             : "Unknown";
-
-          const isDownloading = downloadingId === doc.id;
 
           return (
             <li
@@ -114,11 +111,11 @@ export function DocumentList({
               <button
                 type="button"
                 onClick={() => handleDownload(doc.id, doc.filename, doc.url)}
-                disabled={isDownloading}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border bg-background hover:bg-surface text-muted hover:text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Download file"
+                disabled={downloadingId === doc.id}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border bg-background hover:bg-surface text-muted hover:text-foreground disabled:opacity-50"
+                title="View / download"
               >
-                {isDownloading ? (
+                {downloadingId === doc.id ? (
                   <Loader2 className="h-4 w-4 animate-spin text-accent" />
                 ) : (
                   <Download className="h-4 w-4" />

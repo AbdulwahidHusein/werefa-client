@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
-import { requireMe } from "@/lib/dal";
+import { requireProvider } from "@/lib/dal";
 
 export type UploadState = { error?: string; success?: boolean } | undefined;
 
@@ -15,24 +15,34 @@ const SAFE_MIMES = [
   "image/png",
 ];
 
+const ALLOWED_KINDS = new Set([
+  "trade_license",
+  "owner_id",
+  "address_proof",
+  "health_permit",
+  "establishment_letter",
+  "tin_certificate",
+  "other",
+]);
+
 export async function uploadDocumentAction(
   providerId: string,
   _prev: UploadState,
   formData: FormData,
 ): Promise<UploadState> {
-  const me = await requireMe();
-  if (!me.is_superuser) {
-    return { error: "Only system administrators can upload provider documents." };
-  }
+  await requireProvider();
 
   const file = formData.get("file") as File | null;
-  const docType = String(formData.get("doc_type") ?? "").trim().toLowerCase();
+  const documentKind = String(formData.get("document_kind") ?? "").trim().toLowerCase();
+
+  if (!ALLOWED_KINDS.has(documentKind)) {
+    return { error: "Please select a valid document type." };
+  }
 
   if (!file || file.size === 0) {
     return { error: "Please select a file to upload." };
   }
 
-  // 10MB limit: 10 * 1024 * 1024 bytes
   if (file.size > 10 * 1024 * 1024) {
     return { error: "File too large (max 10MB)." };
   }
@@ -44,23 +54,18 @@ export async function uploadDocumentAction(
     return { error: "Invalid file type. Allowed formats: PDF, DOC, DOCX, JPG, PNG." };
   }
 
-  const typeLabel = docType.charAt(0).toUpperCase() + docType.slice(1);
-  const cleanDocType = ["license", "permit", "insurance"].includes(docType) ? typeLabel : "Other";
-  const prefixedName = `[${cleanDocType}] ${file.name}`;
-
   const serverFormData = new FormData();
-  // Wrap into a File with the prefixed name
-  const prefixedFile = new File([file], prefixedName, { type: file.type });
-  serverFormData.append("file", prefixedFile);
+  serverFormData.append("file", file);
+  serverFormData.append("document_kind", documentKind);
 
   try {
-    await apiFetch(`/admin/providers/${providerId}/documents`, {
+    await apiFetch(`/providers/${providerId}/documents`, {
       method: "POST",
       body: serverFormData,
     });
 
     revalidatePath("/dashboard/settings/documents");
-    revalidatePath(`/admin/providers/${providerId}`);
+    revalidatePath("/dashboard/settings/profile");
     return { success: true };
   } catch (err) {
     if (err instanceof ApiRequestError) {

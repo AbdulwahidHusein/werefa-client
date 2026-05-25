@@ -30,7 +30,8 @@ async function verifyProvider(id: string): Promise<AdminState> {
       { method: "POST" },
     );
     revalidatePath("/admin");
-    return { ok: true, message: `${p.biz_name} → ${p.verification_status}` };
+    revalidatePath(`/admin/providers/${id}`);
+    return { ok: true, message: `${p.biz_name} is now ${p.verification_status}. Owner notified by email if configured.` };
   } catch (e) {
     if (e instanceof ApiRequestError) return { error: e.detail };
     return { error: "Something went wrong. Try again." };
@@ -53,7 +54,8 @@ async function rejectProvider(
       { method: "POST", body: { reason: trimmed } },
     );
     revalidatePath("/admin");
-    return { ok: true, message: `${p.biz_name} → ${p.verification_status}` };
+    revalidatePath(`/admin/providers/${id}`);
+    return { ok: true, message: `${p.biz_name} rejected. Owner notified by email if configured.` };
   } catch (e) {
     if (e instanceof ApiRequestError) return { error: e.detail };
     return { error: "Something went wrong. Try again." };

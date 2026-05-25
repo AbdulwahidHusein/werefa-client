@@ -1,13 +1,14 @@
 import { redirect } from "next/navigation";
 
-import { DocumentList, type ProviderDocument } from "@/components/DocumentList";
-import { DocumentUploadForm } from "@/components/DocumentUploadForm";
+import { AdminProviderReview } from "@/components/AdminProviderReview";
+import type { ProviderDocument } from "@/components/DocumentList";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { requireMe } from "@/lib/dal";
 import { apiFetch } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
+import type { VerificationRequirements } from "@/lib/verification-documents";
 
-type ProviderDetail = components["schemas"]["ProviderDiscoveryPublic"];
+type ProviderDetail = components["schemas"]["ProviderPublic"];
 
 export default async function AdminProviderKYCPage({
   params,
@@ -23,37 +24,39 @@ export default async function AdminProviderKYCPage({
 
   let provider: ProviderDetail;
   let documents: ProviderDocument[] = [];
+  let requirements: VerificationRequirements | null = null;
 
   try {
-    // 1. Fetch provider details
-    provider = await apiFetch<ProviderDetail>(`/providers/${providerId}`);
-    // 2. Fetch provider documents
-    documents = await apiFetch<ProviderDocument[]>(`/providers/${providerId}/documents`);
-  } catch (err) {
+    [provider, documents, requirements] = await Promise.all([
+      apiFetch<ProviderDetail>(`/providers/${providerId}`),
+      apiFetch<ProviderDocument[]>(`/providers/${providerId}/documents`),
+      apiFetch<VerificationRequirements>(
+        `/providers/${providerId}/verification-requirements`,
+      ),
+    ]);
+  } catch {
     redirect("/admin");
   }
 
   return (
     <>
-    <PageHeader
-        title="Provider Verification"
+      <PageHeader
+        title="Provider verification"
         subtitle={provider.biz_name}
         back="/admin"
       />
 
-      <div className="flex flex-col gap-6">
-        {/* Upload Form Component */}
-        <section className="flex flex-col gap-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted px-1">Admin Upload Console</h3>
-          <DocumentUploadForm providerId={providerId} />
-        </section>
-
-        {/* List view of documents */}
-        <section className="flex flex-col gap-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted px-1">Verification Documents</h3>
-          <DocumentList documents={documents} providerId={providerId} />
-        </section>
-      </div>
-  </>
+      <AdminProviderReview
+        providerId={providerId}
+        bizName={provider.biz_name}
+        verificationStatus={provider.verification_status}
+        lastRejectionReason={
+          (provider as ProviderDetail & { last_rejection_reason?: string | null })
+            .last_rejection_reason
+        }
+        documents={documents}
+        requirements={requirements}
+      />
+    </>
   );
 }

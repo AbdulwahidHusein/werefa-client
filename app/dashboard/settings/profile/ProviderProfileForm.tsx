@@ -207,7 +207,8 @@ export function ProviderProfileForm({
         {provider.verification_status === "pending" ? (
           <div className="flex items-start gap-2 rounded-xl bg-amber-50/60 border border-amber-100 text-amber-900 p-3 text-xs leading-relaxed">
             <Info className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-            Pending approval. Public search and queue access are locked until verified.
+            Upload required documents under Verification Documents, then wait for admin
+            approval. Public search and queue joins stay locked until verified.
           </div>
         ) : null}
         {provider.verification_status === "rejected" ? (

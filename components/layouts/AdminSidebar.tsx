@@ -6,8 +6,11 @@ import {
   Activity,
   BarChart3,
   LayoutDashboard,
+  LogOut,
   Users,
 } from "lucide-react";
+
+import { logoutAction } from "@/app/(auth)/actions";
 
 const LINKS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -66,6 +69,19 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
           );
         })}
       </nav>
+
+      <div className="mt-auto border-t border-border p-2">
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            onClick={onNavigate}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-rose-50 hover:text-rose-700 transition-colors"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            Sign out
+          </button>
+        </form>
+      </div>
     </aside>
   );
 }
