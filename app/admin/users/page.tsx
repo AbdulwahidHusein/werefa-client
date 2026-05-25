@@ -5,7 +5,7 @@ import { UserManagementTable } from "@/components/UserManagementTable";
 export default async function AdminUsersPage() {
   let initialUsers: any[] = [];
   try {
-    const res = await apiFetch<any>("/users?limit=100", { method: "GET" });
+    const res = await apiFetch<any>("/users/?limit=100", { method: "GET" });
     initialUsers = res?.data || [];
   } catch (err) {
     console.error("Failed to load initial users in admin panel", err);

@@ -154,7 +154,7 @@ export async function searchUsersAction(query: string) {
   await requireAdmin();
   try {
     if (query.trim().length < 3) {
-      const res = await apiFetch<any>("/users?limit=100", { method: "GET" });
+      const res = await apiFetch<any>("/users/?limit=100", { method: "GET" });
       return { ok: true, users: res.data };
     }
     const res = await apiFetch<any[]>(`/admin/users/search?q=${encodeURIComponent(query)}`, {

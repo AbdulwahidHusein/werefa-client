@@ -1,18 +1,66 @@
+import { redirect } from "next/navigation";
+
 import { AdminPanel } from "./AdminPanel";
 import { AdminTabs } from "./AdminTabs";
 import { RejectProviderPanel } from "./RejectProviderPanel";
 import { unblockUserAction, verifyProviderAction } from "./actions";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { isInvalidSessionError } from "@/lib/auth-errors";
 import { listAllProviders } from "@/lib/dal";
-import { apiFetch } from "@/lib/api/server";
+import { apiFetch, ApiRequestError } from "@/lib/api/server";
+import { rethrowNavigationError } from "@/lib/rethrow-navigation";
+import type { components } from "@/lib/api/schema";
+
+/** FastAPI route is ``GET /users/`` — trailing slash avoids 307 + lost auth on redirect. */
+const ADMIN_USERS_PATH = "/users/?limit=100";
+
+type AdminUserRow = {
+  id: string;
+  email: string;
+  phone_number: string | null;
+  is_active: boolean;
+  is_suspended: boolean;
+  user_type: string;
+};
 
 export default async function AdminPage() {
-  const [providers, usersRes] = await Promise.all([
-    listAllProviders(),
-    apiFetch<any>("/users?limit=100", { method: "GET" }),
-  ]);
+  let providers: Awaited<ReturnType<typeof listAllProviders>> = [];
+  let initialUsers: AdminUserRow[] = [];
+  let loadError: string | null = null;
+  let sessionExpired = false;
 
-  const initialUsers = usersRes?.data || [];
+  try {
+    const [providerRows, usersRes] = await Promise.all([
+      listAllProviders(),
+      apiFetch<components["schemas"]["UsersPublic"]>(ADMIN_USERS_PATH, {
+        method: "GET",
+      }),
+    ]);
+    providers = providerRows;
+    initialUsers = (usersRes?.data ?? []).map((u) => ({
+      id: String(u.id),
+      email: u.email,
+      phone_number: u.phone_number ?? null,
+      is_active: u.is_active,
+      is_suspended: Boolean((u as { is_suspended?: boolean }).is_suspended),
+      user_type: u.user_type,
+    }));
+  } catch (err) {
+    rethrowNavigationError(err);
+    if (isInvalidSessionError(err)) {
+      sessionExpired = true;
+    } else if (err instanceof ApiRequestError) {
+      loadError = err.detail;
+    } else if (err instanceof Error) {
+      loadError = err.message;
+    } else {
+      loadError = "Could not load admin data.";
+    }
+  }
+
+  if (sessionExpired) {
+    redirect("/login?session=expired");
+  }
 
   const tools = (
     <div className="flex flex-col gap-4">
@@ -72,6 +120,11 @@ export default async function AdminPage() {
         title="Overview"
         subtitle="Verify businesses and manage platform access"
       />
+      {loadError ? (
+        <p className="mb-4 rounded-xl border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
+          {loadError}
+        </p>
+      ) : null}
       <AdminTabs
         providers={providers}
         initialUsers={initialUsers}
