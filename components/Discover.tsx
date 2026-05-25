@@ -188,11 +188,11 @@ export function Discover() {
           >
             <MapPin className="h-3.5 w-3.5" aria-hidden />
           </button>
-          <ViewToggle
+          {/* <ViewToggle
             view={view}
             onViewChange={setView}
             className="hidden sm:flex"
-          />
+          /> */}
         </div>
 
         {/* Mobile: filters + map toggle in one slim row */}
