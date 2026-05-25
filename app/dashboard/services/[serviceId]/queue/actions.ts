@@ -110,6 +110,23 @@ export async function walkInAction(
   }
 }
 
+export async function notifyWaitingCustomerAction(
+  serviceId: string,
+  ticketId: string,
+): Promise<QueueActionState> {
+  try {
+    const res = await apiFetch<{ ok: boolean; message: string }>(
+      `/service-items/${serviceId}/tickets/${ticketId}/notify`,
+      { method: "POST" },
+    );
+    revalidatePath(`/dashboard/services/${serviceId}/queue`);
+    return { ok: true, message: res.message ?? "Notification sent." };
+  } catch (err) {
+    if (err instanceof ApiRequestError) return { error: err.detail };
+    return { error: "Could not send notification. Try again." };
+  }
+}
+
 export async function setTicketPriorityAction(
   serviceId: string,
   ticketId: string,

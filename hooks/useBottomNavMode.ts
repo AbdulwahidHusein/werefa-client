@@ -35,17 +35,18 @@ export function useBottomNavMode(): BottomNavMode {
   const pathname = usePathname();
   const { hasSession, role: serverRole } = useSeekerNavSession();
 
-  if (!hasSession) {
-    return isGuestNavRoute(pathname) ? "guest" : false;
-  }
-
   const { data: me, isPending, isFetching } = useQuery({
     queryKey: ["users", "me", "nav"],
     queryFn: () => api<Me>("/users/me"),
     retry: false,
     staleTime: 30_000,
     refetchOnMount: "always",
+    enabled: hasSession,
   });
+
+  if (!hasSession) {
+    return isGuestNavRoute(pathname) ? "guest" : false;
+  }
 
   const role = me ? resolveAppRole(me) : serverRole;
 

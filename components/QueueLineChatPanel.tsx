@@ -36,7 +36,7 @@ function MessageRow({
   return (
     <li className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${
+        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 sm:max-w-[78%] ${
           isMine
             ? "rounded-br-md bg-accent text-accent-foreground"
             : isOwner
@@ -76,6 +76,174 @@ function MessageRow({
   );
 }
 
+type PanelVariant = "floating" | "embedded";
+
+function LineChatOwnerToggle({
+  lineChatEnabled,
+  toggling,
+  onToggle,
+}: {
+  lineChatEnabled: boolean;
+  toggling: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-surface/50 px-4 py-2">
+      <span className="text-xs text-muted">Customer messages</span>
+      <button
+        type="button"
+        disabled={toggling}
+        onClick={onToggle}
+        className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+          lineChatEnabled
+            ? "bg-emerald-100 text-emerald-800"
+            : "bg-zinc-200 text-zinc-700"
+        }`}
+      >
+        {lineChatEnabled ? "Enabled" : "Disabled"}
+      </button>
+    </div>
+  );
+}
+
+function LineChatBody({
+  variant,
+  title,
+  isOwner,
+  lineChatEnabled,
+  toggling,
+  onToggleChat,
+  onClose,
+  messages,
+  loading,
+  error,
+  currentUserId,
+  draft,
+  setDraft,
+  sending,
+  onSend,
+}: {
+  variant: PanelVariant;
+  title: string;
+  isOwner: boolean;
+  lineChatEnabled: boolean;
+  toggling: boolean;
+  onToggleChat: () => void;
+  onClose?: () => void;
+  messages: LineChatMessage[];
+  loading: boolean;
+  error: string | null;
+  currentUserId?: string;
+  draft: string;
+  setDraft: (v: string) => void;
+  sending: boolean;
+  onSend: (e: React.FormEvent) => void;
+}) {
+  const listRef = useRef<HTMLUListElement>(null);
+  const embedded = variant === "embedded";
+  const canSend = lineChatEnabled && draft.trim().length > 0 && !sending;
+
+  useEffect(() => {
+    if (!listRef.current) return;
+    listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [messages]);
+
+  const shellClass = embedded
+    ? "flex min-h-[min(20rem,42vh)] w-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-sm sm:min-h-[min(24rem,48vh)] lg:min-h-[min(32rem,calc(100dvh-11rem))] lg:max-h-[calc(100dvh-8rem)]"
+    : "fixed inset-0 z-50 flex flex-col bg-background md:inset-auto md:bottom-6 md:right-4 md:h-[min(560px,82vh)] md:w-[min(440px,calc(100vw-2rem))] md:rounded-2xl md:border md:border-border md:shadow-2xl";
+
+  return (
+    <div className={shellClass}>
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-sm font-semibold sm:text-base">{title}</h2>
+          <p className="text-[11px] text-muted sm:text-xs">
+            Everyone on this line can chat
+          </p>
+        </div>
+        {!embedded && onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl hover:bg-surface"
+            aria-label="Close chat"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        ) : null}
+      </header>
+
+      {isOwner ? (
+        <LineChatOwnerToggle
+          lineChatEnabled={lineChatEnabled}
+          toggling={toggling}
+          onToggle={onToggleChat}
+        />
+      ) : null}
+
+      <ul
+        ref={listRef}
+        className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
+        aria-live="polite"
+      >
+        {loading ? (
+          <li className="text-center text-xs text-muted">Loading…</li>
+        ) : messages.length === 0 ? (
+          <li className="rounded-xl border border-dashed border-border px-3 py-8 text-center text-xs text-muted sm:text-sm">
+            {lineChatEnabled
+              ? "No messages yet. Say hello to the line."
+              : "Chat is turned off by the business."}
+          </li>
+        ) : (
+          messages.map((m) => (
+            <MessageRow
+              key={m.id}
+              message={m}
+              isMine={!!currentUserId && m.author_user_id === currentUserId}
+            />
+          ))
+        )}
+      </ul>
+
+      {error ? (
+        <p className="shrink-0 px-4 pb-1 text-xs text-danger" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <form
+        onSubmit={onSend}
+        className="shrink-0 border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4"
+      >
+        {!lineChatEnabled ? (
+          <p className="mb-2 text-center text-xs text-muted">
+            The business has paused customer chat.
+          </p>
+        ) : null}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            maxLength={500}
+            disabled={!lineChatEnabled || sending}
+            placeholder={lineChatEnabled ? "Type a message…" : "Chat disabled"}
+            className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm sm:py-3 sm:text-base focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={!canSend}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground disabled:opacity-40 sm:h-12 sm:w-12"
+            aria-label="Send message"
+          >
+            <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function QueueLineChatPanel({
   serviceItemId,
   providerId,
@@ -84,6 +252,7 @@ export function QueueLineChatPanel({
   wsClient,
   isOwner = false,
   initialChatEnabled = true,
+  variant = "floating",
 }: {
   serviceItemId: string;
   providerId?: string;
@@ -92,12 +261,12 @@ export function QueueLineChatPanel({
   wsClient?: { onMessage: (cb: (msg: unknown) => void) => () => void } | null;
   isOwner?: boolean;
   initialChatEnabled?: boolean;
+  variant?: PanelVariant;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(variant === "embedded");
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [toggling, setToggling] = useState(false);
-  const listRef = useRef<HTMLUListElement>(null);
 
   const {
     messages,
@@ -115,11 +284,6 @@ export function QueueLineChatPanel({
   useEffect(() => {
     setChatEnabled(initialChatEnabled);
   }, [initialChatEnabled, setChatEnabled]);
-
-  useEffect(() => {
-    if (!open || !listRef.current) return;
-    listRef.current.scrollTop = listRef.current.scrollHeight;
-  }, [messages, open]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -148,7 +312,26 @@ export function QueueLineChatPanel({
   }
 
   const title = businessName ? `${businessName} chat` : "Line chat";
-  const canSend = lineChatEnabled && draft.trim().length > 0 && !sending;
+  const bodyProps = {
+    variant,
+    title,
+    isOwner,
+    lineChatEnabled,
+    toggling,
+    onToggleChat: handleToggleChat,
+    messages,
+    loading,
+    error,
+    currentUserId,
+    draft,
+    setDraft,
+    sending,
+    onSend: handleSend,
+  };
+
+  if (variant === "embedded") {
+    return <LineChatBody {...bodyProps} />;
+  }
 
   return (
     <>
@@ -169,102 +352,7 @@ export function QueueLineChatPanel({
       ) : null}
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background md:inset-auto md:bottom-6 md:right-4 md:h-[min(520px,80vh)] md:w-[min(400px,calc(100vw-2rem))] md:rounded-2xl md:border md:border-border md:shadow-2xl">
-          <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
-            <div className="min-w-0">
-              <h2 className="truncate text-sm font-semibold">{title}</h2>
-              <p className="text-[11px] text-muted">Everyone on this line can chat</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl hover:bg-surface"
-              aria-label="Close chat"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </header>
-
-          {isOwner ? (
-            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-surface/50 px-4 py-2">
-              <span className="text-xs text-muted">Customer messages</span>
-              <button
-                type="button"
-                disabled={toggling}
-                onClick={handleToggleChat}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                  lineChatEnabled
-                    ? "bg-emerald-100 text-emerald-800"
-                    : "bg-zinc-200 text-zinc-700"
-                }`}
-              >
-                {lineChatEnabled ? "Enabled" : "Disabled"}
-              </button>
-            </div>
-          ) : null}
-
-          <ul
-            ref={listRef}
-            className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
-            aria-live="polite"
-          >
-            {loading ? (
-              <li className="text-center text-xs text-muted">Loading…</li>
-            ) : messages.length === 0 ? (
-              <li className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-xs text-muted">
-                {lineChatEnabled
-                  ? "No messages yet. Say hello to the line."
-                  : "Chat is turned off by the business."}
-              </li>
-            ) : (
-              messages.map((m) => (
-                <MessageRow
-                  key={m.id}
-                  message={m}
-                  isMine={!!currentUserId && m.author_user_id === currentUserId}
-                />
-              ))
-            )}
-          </ul>
-
-          {error ? (
-            <p className="shrink-0 px-4 pb-1 text-xs text-danger" role="alert">
-              {error}
-            </p>
-          ) : null}
-
-          <form
-            onSubmit={handleSend}
-            className="shrink-0 border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-          >
-            {!lineChatEnabled ? (
-              <p className="mb-2 text-center text-xs text-muted">
-                The business has paused customer chat.
-              </p>
-            ) : null}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                maxLength={500}
-                disabled={!lineChatEnabled || sending}
-                placeholder={
-                  lineChatEnabled ? "Type a message…" : "Chat disabled"
-                }
-                className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={!canSend}
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground disabled:opacity-40"
-                aria-label="Send message"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </div>
-          </form>
-        </div>
+        <LineChatBody {...bodyProps} onClose={() => setOpen(false)} />
       ) : null}
     </>
   );

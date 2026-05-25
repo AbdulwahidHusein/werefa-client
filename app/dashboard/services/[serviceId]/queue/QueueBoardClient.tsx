@@ -21,6 +21,7 @@ import { RecallButton } from "./RecallButton";
 import { ServingActions } from "./ServingActions";
 import { WalkInForm } from "./WalkInForm";
 import { QueueBoardSettings } from "./QueueBoardSettings";
+import { QueueLineChatPanel } from "@/components/QueueLineChatPanel";
 import { TicketJoinDocuments } from "./TicketJoinDocuments";
 import type { JoinDocumentRequirement } from "@/lib/join-documents";
 import { approveTicketAction, rejectTicketAction } from "./actions";
@@ -34,6 +35,7 @@ import {
   ticketDisplayName,
   type QueueTicketExtra,
 } from "@/lib/queue-customer";
+import { NotifyCustomerButton } from "./NotifyCustomerButton";
 import { VIPToggleButton } from "./VIPToggleButton";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -168,6 +170,7 @@ function WaitingRow({
   const [expanded, setExpanded] = useState(false);
   const isWalkIn = t.source !== "remote_app";
   const isVip = (t.priority ?? 0) > 0;
+  const canNotify = !isWalkIn && Boolean(t.user_id);
 
   return (
     <li
@@ -197,16 +200,26 @@ function WaitingRow({
             {isWalkIn ? "Walk-in" : "App"} · {relativeTime(t.joined_at) ?? "—"}
           </p>
         </div>
-        {allowVip ? (
-          <div onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <NotifyCustomerButton
+            serviceId={serviceId}
+            ticketId={t.id}
+            ticketNumber={t.ticket_number}
+            canNotify={canNotify}
+            onActionDone={onActionDone}
+          />
+          {allowVip ? (
             <VIPToggleButton
               serviceId={serviceId}
               ticketId={t.id}
               isVip={isVip}
               onActionDone={onActionDone}
             />
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
       {expanded && !isWalkIn ? (
         <div className="mt-2 border-t border-border pt-2 space-y-2">
@@ -363,6 +376,7 @@ export function QueueBoardClient({
 }) {
   const [tab, setTab] = useState<Tab>("queue");
   const [isPaused, setIsPaused] = useState(initialIsPaused);
+  const [chatEnabled, setChatEnabled] = useState(lineChatEnabled);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastIdRef = useRef(0);
 
@@ -449,10 +463,9 @@ export function QueueBoardClient({
           approvalQueueOrder={approvalQueueOrder}
           requiresJoinDocuments={requiresJoinDocuments}
           joinDocumentRequirements={joinDocumentRequirements}
-          lineChatEnabled={lineChatEnabled}
+          lineChatEnabled={chatEnabled}
+          onLineChatEnabledChange={setChatEnabled}
           isOwner={isOwner}
-          currentUserId={currentUserId}
-          wsClient={client}
           onCleared={() => {
             setIsPaused(true);
             refreshTickets();
@@ -460,7 +473,9 @@ export function QueueBoardClient({
           onActionDone={notify}
         />
       ) : (
-        <div className="mx-auto max-w-2xl space-y-6 pb-24">
+        <div className="mx-auto w-full max-w-7xl pb-24">
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_min(20rem,36%)] lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,1fr)_26rem]">
+            <div className="min-w-0 space-y-6">
           {/* Status strip */}
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
             <div className="flex flex-wrap items-center gap-3">
@@ -641,6 +656,27 @@ export function QueueBoardClient({
               </ul>
             </details>
           ) : null}
+            </div>
+
+            <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start">
+              <div className="mb-3 lg:mb-4">
+                <h2 className="text-sm font-semibold sm:text-base">Line chat</h2>
+                <p className="mt-0.5 text-xs text-muted sm:text-sm">
+                  Message everyone waiting or being served on this line.
+                </p>
+              </div>
+              <QueueLineChatPanel
+                variant="embedded"
+                serviceItemId={serviceId}
+                providerId={providerId}
+                businessName={businessName}
+                currentUserId={currentUserId}
+                wsClient={client}
+                isOwner={isOwner}
+                initialChatEnabled={chatEnabled}
+              />
+            </aside>
+          </div>
         </div>
       )}
 

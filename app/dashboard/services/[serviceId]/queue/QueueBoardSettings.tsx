@@ -8,7 +8,7 @@ import { CustomerDirectoryPanel } from "./CustomerDirectoryPanel";
 import { GenerateInviteButton } from "./GenerateInviteButton";
 import { AccessCodeDisplay } from "@/components/AccessCodeDisplay";
 import { QueuePauseToggle } from "@/components/QueuePauseToggle";
-import { QueueLineChatPanel } from "@/components/QueueLineChatPanel";
+import { LineChatSettingsSection } from "./LineChatSettingsSection";
 
 export function QueueBoardSettings({
   serviceId,
@@ -22,9 +22,8 @@ export function QueueBoardSettings({
   requiresJoinDocuments,
   joinDocumentRequirements,
   lineChatEnabled,
+  onLineChatEnabledChange,
   isOwner,
-  currentUserId,
-  wsClient,
   onCleared,
   onActionDone,
 }: {
@@ -39,9 +38,8 @@ export function QueueBoardSettings({
   requiresJoinDocuments: boolean;
   joinDocumentRequirements: JoinDocumentRequirement[];
   lineChatEnabled: boolean;
+  onLineChatEnabledChange: (enabled: boolean) => void;
   isOwner: boolean;
-  currentUserId?: string;
-  wsClient: { onMessage: (cb: (msg: unknown) => void) => () => void } | null;
   onCleared: () => void;
   onActionDone: (msg: string, variant?: "ok" | "err") => void;
 }) {
@@ -121,23 +119,13 @@ export function QueueBoardSettings({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-background p-5">
-        <h2 className="text-base font-semibold">Line chat</h2>
-        <p className="mt-1 text-sm text-muted">
-          Message everyone currently in this queue.
-        </p>
-        <div className="mt-4">
-          <QueueLineChatPanel
-            serviceItemId={serviceId}
-            providerId={providerId}
-            businessName={businessName}
-            currentUserId={currentUserId}
-            wsClient={wsClient}
-            isOwner={isOwner}
-            initialChatEnabled={lineChatEnabled}
-          />
-        </div>
-      </section>
+      <LineChatSettingsSection
+        serviceId={serviceId}
+        providerId={providerId}
+        lineChatEnabled={lineChatEnabled}
+        onLineChatEnabledChange={onLineChatEnabledChange}
+        isOwner={isOwner}
+      />
     </div>
   );
 }

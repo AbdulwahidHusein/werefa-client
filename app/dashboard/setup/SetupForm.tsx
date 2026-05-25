@@ -295,7 +295,7 @@ export function SetupForm() {
           step={1}
           value={joinRadius}
           onChange={(e) => setJoinRadius(e.target.value)}
-          placeholder="200"
+          placeholder="100000"
         />
         <p className="-mt-2 text-xs text-muted">
           Customers must be within this distance to join remotely (typical: 100–500 m).
