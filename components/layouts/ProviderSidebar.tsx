@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/(auth)/actions";
+import { WerefaLogo } from "@/components/WerefaLogo";
 import {
   BarChart3,
   Building2,
@@ -81,22 +82,15 @@ export function ProviderSidebar({
     <aside className="flex h-full w-full flex-col border-r border-border bg-surface">
       {/* Brand / business header */}
       <div className="border-b border-border px-4 py-4">
-        <Link href="/dashboard" onClick={onNavigate} className="block group">
-          <div className="flex items-center gap-2.5">
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground text-xs font-bold select-none">
-              W
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold tracking-wide text-muted uppercase">Werefa</p>
-              {businessName ? (
-                <p className="truncate text-sm font-semibold text-foreground leading-tight">
-                  {businessName}
-                </p>
-              ) : (
-                <p className="text-xs text-muted">Provider</p>
-              )}
-            </div>
-          </div>
+        <Link href="/dashboard" onClick={onNavigate} className="block group space-y-1">
+          <WerefaLogo variant="mark" size="md" href={null} />
+          {businessName ? (
+            <p className="truncate text-sm font-semibold text-foreground leading-tight">
+              {businessName}
+            </p>
+          ) : (
+            <p className="text-xs text-muted">Provider dashboard</p>
+          )}
         </Link>
       </div>
 

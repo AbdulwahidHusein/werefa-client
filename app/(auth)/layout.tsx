@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WerefaLogo } from "@/components/WerefaLogo";
 
 export default function AuthLayout({
   children,
@@ -8,15 +8,7 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-dvh flex-col px-6 pb-8 pt-[max(2rem,env(safe-area-inset-top))]">
       <header className="mb-10">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-lg font-semibold tracking-tight"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent text-accent-foreground">
-            W
-          </span>
-          Werefa
-        </Link>
+        <WerefaLogo variant="full" size="md" href="/" />
       </header>
       <main className="mx-auto flex w-full max-w-sm flex-1 flex-col">
         {children}

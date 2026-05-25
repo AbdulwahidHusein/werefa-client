@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { logoutAction } from "@/app/(auth)/actions";
+import { WerefaLogo } from "@/components/WerefaLogo";
 
 const LINKS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -40,10 +41,10 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <aside className="flex h-full w-60 flex-col border-r border-border bg-surface">
       <div className="border-b border-border px-4 py-4">
-        <Link href="/admin" className="block" onClick={onNavigate}>
-          <p className="text-sm font-semibold tracking-tight">Werefa</p>
+        <div className="flex flex-col gap-1">
+          <WerefaLogo variant="mark" size="md" href="/admin" onClick={onNavigate} />
           <p className="text-xs text-muted">Administration</p>
-        </Link>
+        </div>
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 p-2">
         {LINKS.map(({ href, label, icon: Icon, exact, match }) => {
