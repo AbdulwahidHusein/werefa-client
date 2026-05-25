@@ -16,12 +16,8 @@ export const metadata: Metadata = {
   description: "Skip the line.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/brand/icon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
-    ],
-    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180" }],
+    icon: [{ url: "/brand/logo.png", type: "image/png", sizes: "1230x939" }],
+    apple: [{ url: "/brand/logo.png", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,

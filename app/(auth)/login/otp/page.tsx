@@ -1,22 +1,19 @@
-import Link from "next/link";
-import { Suspense } from "react";
-
 import { AuthTabs } from "../../AuthTabs";
 import { OtpRequestForm } from "./OtpRequestForm";
 
 export default function OtpLoginPage() {
   return (
-    <>
-    <div className="flex flex-1 flex-col">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+    <div className="flex w-full flex-col">
+      <h1 className="text-center text-xl font-semibold tracking-tight sm:text-2xl">
         Welcome back
       </h1>
-      <p className="mb-6 text-sm text-muted">Log in using a one-time code sent to your email.</p>
-      
+      <p className="mt-1.5 mb-6 text-center text-sm text-muted">
+        Sign in with a one-time code
+      </p>
+
       <AuthTabs active="login" />
 
       <OtpRequestForm />
     </div>
-  </>
   );
 }

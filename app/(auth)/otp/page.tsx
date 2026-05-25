@@ -15,13 +15,13 @@ export default async function OtpVerificationPage({
   }
 
   return (
-    <div className="flex flex-1 flex-col">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
-        Enter verification code
+    <div className="flex w-full flex-col">
+      <h1 className="text-center text-xl font-semibold tracking-tight sm:text-2xl">
+        Verification code
       </h1>
-      <p className="mb-6 text-sm text-muted">
-        We sent a 6-digit code to{" "}
-        <span className="font-semibold text-foreground">{email}</span>.
+      <p className="mt-1.5 mb-6 text-center text-sm text-muted">
+        Sent to{" "}
+        <span className="font-medium text-foreground">{email}</span>
       </p>
 
       <OtpVerifyForm email={email} />

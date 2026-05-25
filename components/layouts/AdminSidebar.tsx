@@ -42,7 +42,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
     <aside className="flex h-full w-60 flex-col border-r border-border bg-surface">
       <div className="border-b border-border px-4 py-4">
         <div className="flex flex-col gap-1">
-          <WerefaLogo variant="mark" size="md" href="/admin" onClick={onNavigate} />
+          <WerefaLogo size="sm" href="/admin" onClick={onNavigate} />
           <p className="text-xs text-muted">Administration</p>
         </div>
       </div>

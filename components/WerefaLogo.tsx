@@ -1,47 +1,57 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** Source file: public/brand/logo.png (full artwork — do not crop for UI) */
-const LOGO_SRC = "/brand/logo.png";
-const LOGO_ASPECT = 471 / 302;
+/** Single brand asset: public/brand/logo.png */
+export const LOGO_SRC = "/brand/logo.png";
+const LOGO_ASPECT = 1230 / 939;
 
 function logoDimensions(width: number) {
   return { w: width, h: Math.max(1, Math.round(width / LOGO_ASPECT)) };
 }
 
 type WerefaLogoProps = {
-  /** Smaller mark in sidebars vs larger header lockup */
-  variant?: "full" | "mark";
-  size?: "sm" | "md" | "lg";
+  size?: "auth" | "sm" | "md" | "lg";
   href?: string | null;
   className?: string;
   onClick?: () => void;
 };
 
 const WIDTHS = {
-  full: { sm: 120, md: 168, lg: 210 },
-  mark: { sm: 100, md: 128, lg: 148 },
+  auth: 88,
+  sm: 120,
+  md: 168,
+  lg: 210,
 } as const;
 
 export function WerefaLogo({
-  variant = "full",
   size = "md",
   href = "/",
   className = "",
   onClick,
 }: WerefaLogoProps) {
-  const width = WIDTHS[variant][size];
+  const width = WIDTHS[size];
   const dim = logoDimensions(width);
+  const centered = className.includes("justify-center") || className.includes("mx-auto");
+  const isAuth = size === "auth";
 
   const img = (
-    <span className={`inline-flex items-center ${className}`.trim()}>
+    <span
+      className={`inline-flex items-center ${
+        isAuth
+          ? "w-full max-w-[5.5rem] sm:max-w-[6.5rem] md:max-w-[7.25rem]"
+          : "w-auto"
+      } ${className}`.trim()}
+      style={!isAuth ? { maxWidth: dim.w } : undefined}
+    >
       <Image
         src={LOGO_SRC}
         alt="Werefa"
         width={dim.w}
         height={dim.h}
-        className="h-auto w-auto max-w-full shrink-0 object-contain object-left"
-        priority={variant === "full" && size === "md"}
+        className={`h-auto w-full shrink-0 object-contain ${
+          centered ? "object-center" : "object-left"
+        }`}
+        priority={size === "auth" || size === "md"}
       />
     </span>
   );
@@ -51,7 +61,9 @@ export function WerefaLogo({
       <Link
         href={href}
         onClick={onClick}
-        className="inline-flex rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className={`inline-flex rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+          centered ? "mx-auto" : ""
+        }`}
       >
         {img}
       </Link>

@@ -17,8 +17,8 @@ export default async function Home() {
     <div className="flex w-full min-w-0 flex-col overflow-x-hidden">
       <header className="mb-2 flex min-w-0 items-center justify-between gap-2 sm:mb-5 sm:gap-4">
         <div className="flex min-w-0 flex-col gap-2 sm:gap-3">
-          <WerefaLogo variant="full" size="sm" href="/" className="sm:hidden" />
-          <WerefaLogo variant="full" size="md" href="/" className="hidden sm:inline-flex" />
+          <WerefaLogo size="sm" href="/" className="sm:hidden" />
+          <WerefaLogo size="md" href="/" className="hidden sm:inline-flex" />
           <h1 className="truncate text-base font-bold tracking-tight sm:text-2xl lg:text-3xl">
             Discover
           </h1>

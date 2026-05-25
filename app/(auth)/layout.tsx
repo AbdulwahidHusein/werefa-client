@@ -6,13 +6,13 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh flex-col px-6 pb-8 pt-[max(2rem,env(safe-area-inset-top))]">
-      <header className="mb-10">
-        <WerefaLogo variant="full" size="md" href="/" />
-      </header>
-      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col">
-        {children}
-      </main>
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-5 pb-10 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6">
+      <div className="flex w-full max-w-sm flex-col">
+        <header className="mb-4 flex justify-center sm:mb-5">
+          <WerefaLogo size="auth" href="/" className="justify-center" />
+        </header>
+        <main>{children}</main>
+      </div>
     </div>
   );
 }

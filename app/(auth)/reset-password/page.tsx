@@ -9,12 +9,12 @@ export const metadata = {
 function ResetPasswordFormWrapper() {
   return (
     <>
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Reset password</h1>
-        <p className="text-sm text-muted mt-1">
-          Enter your new password below.
-        </p>
+    <div className="flex w-full flex-col space-y-5">
+      <div className="text-center">
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+          Reset password
+        </h1>
+        <p className="mt-1.5 text-sm text-muted">Choose a new password</p>
       </div>
       <Suspense
         fallback={<div className="animate-pulse h-40 bg-surface rounded" />}

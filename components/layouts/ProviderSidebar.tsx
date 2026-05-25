@@ -83,7 +83,7 @@ export function ProviderSidebar({
       {/* Brand / business header */}
       <div className="border-b border-border px-4 py-4">
         <Link href="/dashboard" onClick={onNavigate} className="block group space-y-1">
-          <WerefaLogo variant="mark" size="md" href={null} />
+          <WerefaLogo size="sm" href={null} />
           {businessName ? (
             <p className="truncate text-sm font-semibold text-foreground leading-tight">
               {businessName}

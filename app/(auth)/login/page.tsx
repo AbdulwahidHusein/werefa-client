@@ -4,7 +4,7 @@ import { LoginForm } from "./LoginForm";
 function LoginMessage({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <div className="mb-4 rounded-lg border border-border bg-surface p-3 text-sm text-foreground">
+    <div className="mb-4 rounded-xl border border-border bg-surface px-3 py-2.5 text-center text-sm text-foreground">
       {message}
     </div>
   );
@@ -18,15 +18,17 @@ export default async function LoginPage({
   const { message, session } = await searchParams;
   const banner =
     session === "expired"
-      ? "Your session expired (for example after a server restart). Please log in again."
+      ? "Your session expired. Please log in again."
       : (message ?? null);
 
   return (
-    <div className="flex flex-1 flex-col">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+    <div className="flex w-full flex-col">
+      <h1 className="text-center text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
         Welcome back
       </h1>
-      <p className="mb-6 text-sm text-muted">Log in to skip the line.</p>
+      <p className="mt-1.5 mb-6 text-center text-sm text-muted">
+        Log in to skip the line
+      </p>
       <AuthTabs active="login" />
       <LoginMessage message={banner} />
       <LoginForm />
