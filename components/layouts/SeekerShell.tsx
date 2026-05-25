@@ -2,28 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Ticket, User } from "lucide-react";
+import { Bell, Home, LogIn, Ticket, User, UserPlus } from "lucide-react";
+import type { BottomNavMode } from "@/hooks/useBottomNavMode";
 import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
 
-const TABS = [
-  { href: "/", label: "Discover", icon: Home, match: (p: string) => p === "/" },
+type Tab = {
+  href: string;
+  label: string;
+  icon: typeof Home;
+  match: (p: string) => boolean;
+};
+
+const SEEKER_TABS: Tab[] = [
+  { href: "/", label: "Discover", icon: Home, match: (p) => p === "/" },
   {
     href: "/me/tickets",
     label: "My queue",
     icon: Ticket,
-    match: (p: string) => p.startsWith("/me/tickets"),
+    match: (p) => p.startsWith("/me/tickets"),
   },
   {
     href: "/me/notifications",
     label: "Alerts",
     icon: Bell,
-    match: (p: string) => p.startsWith("/me/notifications"),
+    match: (p) => p.startsWith("/me/notifications"),
   },
   {
     href: "/account",
     label: "Account",
     icon: User,
-    match: (p: string) =>
+    match: (p) =>
       p === "/account" ||
       p.startsWith("/account/") ||
       p.startsWith("/p/") ||
@@ -31,17 +39,35 @@ const TABS = [
   },
 ];
 
+const GUEST_TABS: Tab[] = [
+  { href: "/", label: "Discover", icon: Home, match: (p) => p === "/" },
+  {
+    href: "/login",
+    label: "Log in",
+    icon: LogIn,
+    match: (p) => p === "/login" || p.startsWith("/login/"),
+  },
+  {
+    href: "/signup",
+    label: "Sign up",
+    icon: UserPlus,
+    match: (p) => p === "/signup" || p.startsWith("/signup/"),
+  },
+];
+
 export function SeekerShell({
   children,
-  showNav = true,
+  navMode = "seeker",
   wide = false,
 }: {
   children: React.ReactNode;
-  showNav?: boolean;
+  navMode?: BottomNavMode;
   wide?: boolean;
 }) {
   const pathname = usePathname();
   const { unreadCount } = useUnreadNotificationCount();
+  const showNav = navMode !== false;
+  const tabs = navMode === "guest" ? GUEST_TABS : SEEKER_TABS;
 
   const isProviderPage = pathname.startsWith("/p/");
   const contentWidth = wide || isProviderPage ? "max-w-7xl w-full" : "max-w-md w-full";
@@ -60,8 +86,12 @@ export function SeekerShell({
 
       {showNav ? (
         <nav className="seeker-bottom-nav" aria-label="Main navigation">
-          <ul className="mx-auto grid h-[var(--seeker-tab-bar-h)] max-w-7xl grid-cols-4 gap-0.5 px-2">
-            {TABS.map((tab) => {
+          <ul
+            className={`mx-auto grid h-[var(--seeker-tab-bar-h)] max-w-7xl gap-0.5 px-2 ${
+              tabs.length === 3 ? "grid-cols-3" : "grid-cols-4"
+            }`}
+          >
+            {tabs.map((tab) => {
               const Icon = tab.icon;
               const active = tab.match(pathname);
               return (

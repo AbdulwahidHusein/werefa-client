@@ -6,6 +6,7 @@ import {
   Activity,
   BarChart3,
   LayoutDashboard,
+  LayoutList,
   LogOut,
   Users,
 } from "lucide-react";
@@ -71,7 +72,15 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      <div className="mt-auto border-t border-border p-2">
+      <div className="mt-auto border-t border-border p-2 flex flex-col gap-0.5">
+        <Link
+          href="/"
+          onClick={onNavigate}
+          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-background hover:text-foreground transition-colors"
+        >
+          <LayoutList className="h-4 w-4 shrink-0" />
+          Discover
+        </Link>
         <form action={logoutAction}>
           <button
             type="submit"

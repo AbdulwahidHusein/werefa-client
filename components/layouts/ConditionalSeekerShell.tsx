@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-import { useSeekerBottomNav } from "@/hooks/useSeekerBottomNav";
+import { useBottomNavMode } from "@/hooks/useBottomNavMode";
 import { SeekerShell } from "./SeekerShell";
 
 const AUTH_PREFIXES = [
@@ -32,7 +32,7 @@ export function ConditionalSeekerShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const showNav = useSeekerBottomNav();
+  const navMode = useBottomNavMode();
 
   if (isAuthPath(pathname) || usesDeskShell(pathname)) {
     return <>{children}</>;
@@ -48,7 +48,7 @@ export function ConditionalSeekerShell({
   const isDiscoverHome = pathname === "/";
 
   return (
-    <SeekerShell showNav={showNav} wide={isDiscoverHome}>
+    <SeekerShell navMode={navMode} wide={isDiscoverHome}>
       {children}
     </SeekerShell>
   );

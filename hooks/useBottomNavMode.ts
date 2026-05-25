@@ -10,23 +10,34 @@ import { useSeekerNavSession } from "@/lib/seeker-nav-context";
 
 type Me = components["schemas"]["UserPublic"];
 
-function isSeekerAppRoute(pathname: string): boolean {
+export type BottomNavMode = false | "seeker" | "guest";
+
+function isPublicSeekerRoute(pathname: string): boolean {
   return (
+    pathname === "/" ||
+    pathname.startsWith("/p/") ||
     pathname.startsWith("/me/") ||
     pathname === "/account" ||
     pathname.startsWith("/account/") ||
-    pathname.startsWith("/p/") ||
     pathname.startsWith("/join")
   );
 }
 
+function isGuestNavRoute(pathname: string): boolean {
+  return pathname === "/" || pathname.startsWith("/p/");
+}
+
 /**
- * Bottom tabs for logged-in service seekers.
- * Uses live `/users/me` so PWA / home-screen shortcuts stay in sync with cookies.
+ * Bottom tab bar: full seeker tabs when logged in as a customer;
+ * minimal Discover / Log in / Sign up for guests on public pages.
  */
-export function useSeekerBottomNav(): boolean {
+export function useBottomNavMode(): BottomNavMode {
   const pathname = usePathname();
   const { hasSession, role: serverRole } = useSeekerNavSession();
+
+  if (!hasSession) {
+    return isGuestNavRoute(pathname) ? "guest" : false;
+  }
 
   const { data: me, isPending, isFetching } = useQuery({
     queryKey: ["users", "me", "nav"],
@@ -39,16 +50,15 @@ export function useSeekerBottomNav(): boolean {
   const role = me ? resolveAppRole(me) : serverRole;
 
   if (me) {
-    return role === "seeker";
+    return role === "seeker" ? "seeker" : false;
   }
 
-  // Server hint (first paint / while /users/me loads) — important right after login redirect
-  if ((isPending || isFetching) && hasSession && serverRole === "seeker") {
-    return pathname === "/" || isSeekerAppRoute(pathname);
+  if ((isPending || isFetching) && serverRole === "seeker") {
+    return isPublicSeekerRoute(pathname) ? "seeker" : false;
   }
 
-  if (hasSession && serverRole === "seeker") {
-    return pathname === "/" || isSeekerAppRoute(pathname);
+  if (serverRole === "seeker") {
+    return isPublicSeekerRoute(pathname) ? "seeker" : false;
   }
 
   return false;
