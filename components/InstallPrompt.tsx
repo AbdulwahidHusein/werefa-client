@@ -5,7 +5,18 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 
-const DISMISS_KEY = "werefa_install_dismissed";
+const DISMISS_KEY = "werefa_install_dismissed_at";
+const DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
+
+function installDismissed(): boolean {
+  if (typeof window === "undefined") return false;
+  const raw = localStorage.getItem(DISMISS_KEY);
+  if (!raw) return false;
+  if (raw === "1") return true;
+  const at = Number(raw);
+  if (!Number.isFinite(at)) return true;
+  return Date.now() - at < DISMISS_MS;
+}
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -41,7 +52,7 @@ export function InstallPrompt() {
 
   useEffect(() => {
     if (isStandalone() || !isMobile()) return;
-    if (localStorage.getItem(DISMISS_KEY) === "1") return;
+    if (installDismissed()) return;
 
     setIos(isIos());
     setVisible(true);
@@ -61,7 +72,7 @@ export function InstallPrompt() {
   }, []);
 
   const dismiss = useCallback(() => {
-    localStorage.setItem(DISMISS_KEY, "1");
+    localStorage.setItem(DISMISS_KEY, String(Date.now()));
     setVisible(false);
   }, []);
 

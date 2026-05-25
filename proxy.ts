@@ -99,6 +99,6 @@ export function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|manifest.webmanifest|brand/logo\\.png|api).*)",
+    "/((?!_next/static|_next/image|manifest.webmanifest|sw\\.js|brand/|api).*)",
   ],
 };
