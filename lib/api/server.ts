@@ -18,10 +18,14 @@ export class ApiRequestError extends Error {
   }
 }
 
+/** Fail fast when the API is down instead of hanging for minutes (undici default). */
+const API_FETCH_TIMEOUT_MS = 25_000;
+
 type FetchOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
   authenticated?: boolean;
   query?: Record<string, string | number | boolean | undefined | null>;
+  timeoutMs?: number;
 };
 
 function buildUrl(path: string, query?: FetchOptions["query"]): string {
@@ -55,7 +59,14 @@ export async function apiFetch<T>(
   path: string,
   opts: FetchOptions = {},
 ): Promise<T> {
-  const { body, authenticated = true, query, headers, ...rest } = opts;
+  const {
+    body,
+    authenticated = true,
+    query,
+    headers,
+    timeoutMs = API_FETCH_TIMEOUT_MS,
+    ...rest
+  } = opts;
 
   const reqHeaders = new Headers(headers);
   if (authenticated) {
@@ -71,12 +82,32 @@ export async function apiFetch<T>(
     payload = JSON.stringify(body);
   }
 
-  const res = await fetch(buildUrl(`/api/v1${path}`, query), {
-    ...rest,
-    headers: reqHeaders,
-    body: payload,
-    cache: rest.cache ?? "no-store",
-  });
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(`/api/v1${path}`, query), {
+      ...rest,
+      headers: reqHeaders,
+      body: payload,
+      cache: rest.cache ?? "no-store",
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (err) {
+    const isTimeout =
+      err instanceof Error &&
+      (err.name === "TimeoutError" ||
+        err.name === "AbortError" ||
+        (err as { code?: string }).code === "UND_ERR_HEADERS_TIMEOUT");
+    if (isTimeout) {
+      throw new ApiRequestError({
+        status: 504,
+        detail:
+          "API request timed out. Is the backend running at " +
+          API_URL +
+          "?",
+      });
+    }
+    throw err;
+  }
 
   if (!res.ok) {
     throw new ApiRequestError(await parseError(res));
