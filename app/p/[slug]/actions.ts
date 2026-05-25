@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { friendlyJoinError } from "@/lib/api-errors";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 import type { components } from "@/lib/api/schema";
 import { requireMe } from "@/lib/dal";
@@ -87,9 +88,18 @@ export async function joinQueueAction(
   } catch (err) {
     rethrowNavigationError(err);
     if (err instanceof ApiRequestError) {
-      return { error: err.detail, code };
+      return { error: friendlyJoinError(err.detail, err.status), code };
     }
-    return { error: "Something went wrong. Try again.", code };
+    const offline =
+      err instanceof TypeError ||
+      (err instanceof Error &&
+        /fetch|network|ECONNREFUSED|ENOTFOUND/i.test(err.message));
+    return {
+      error: offline
+        ? "Could not reach the server. Check your connection and try again."
+        : "Something went wrong. Try again.",
+      code,
+    };
   }
 
   redirect(destination);

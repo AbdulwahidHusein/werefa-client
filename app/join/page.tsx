@@ -1,4 +1,7 @@
 import { redirect } from "next/navigation";
+
+import { StatusScreen } from "@/components/StatusScreen";
+import { friendlyJoinError } from "@/lib/api-errors";
 import { apiFetch, ApiRequestError } from "@/lib/api/server";
 
 type JoinInviteResolved = {
@@ -18,12 +21,12 @@ export default async function JoinDeepLinkPage({
 
   if (!token) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-xl font-semibold">Invalid invite link</p>
-        <p className="mt-2 text-sm text-muted">
-          The link you followed is missing the invite token.
-        </p>
-      </div>
+      <StatusScreen
+        variant="error"
+        title="Invalid invite link"
+        message="This link is missing the invite token. Ask the business for a new QR code or link."
+        primaryAction={{ label: "Go to Discover", href: "/" }}
+      />
     );
   }
 
@@ -37,18 +40,20 @@ export default async function JoinDeepLinkPage({
     );
   } catch (err) {
     if (err instanceof ApiRequestError) {
-      error = err.detail;
+      error = friendlyJoinError(err.detail, err.status);
     } else {
-      error = "Failed to resolve invite link.";
+      error = "We couldn't open this invite. Check your connection and try again.";
     }
   }
 
   if (error || !resolved) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-xl font-semibold text-danger">Invite error</p>
-        <p className="mt-2 text-sm text-muted">{error}</p>
-      </div>
+      <StatusScreen
+        variant="error"
+        title="Invite unavailable"
+        message={error ?? "This invite link is no longer valid."}
+        primaryAction={{ label: "Go to Discover", href: "/" }}
+      />
     );
   }
 

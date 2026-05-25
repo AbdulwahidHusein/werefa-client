@@ -1,5 +1,6 @@
 import "server-only";
 
+import { parseApiDetail } from "../api-errors";
 import { API_URL } from "../env";
 import { getSessionToken } from "../session";
 
@@ -40,19 +41,17 @@ function buildUrl(path: string, query?: FetchOptions["query"]): string {
 }
 
 async function parseError(res: Response): Promise<ApiError> {
-  let detail = res.statusText || "Request failed";
+  let raw: unknown = res.statusText || "Request failed";
   try {
     const data = (await res.json()) as { detail?: unknown };
-    if (typeof data.detail === "string") {
-      detail = data.detail;
-    } else if (Array.isArray(data.detail) && data.detail.length > 0) {
-      const first = data.detail[0] as { msg?: string };
-      detail = first?.msg ?? detail;
-    }
+    if (data.detail !== undefined) raw = data.detail;
   } catch {
     // body wasn't JSON; keep statusText
   }
-  return { status: res.status, detail };
+  return {
+    status: res.status,
+    detail: parseApiDetail(raw, res.statusText || "Request failed"),
+  };
 }
 
 export async function apiFetch<T>(

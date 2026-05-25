@@ -4,6 +4,7 @@ import { Crown } from "lucide-react";
 import { useActionState, useEffect, useId, useState } from "react";
 
 import { joinQueueAction, type JoinState } from "./actions";
+import { JoinErrorAlert } from "@/components/JoinErrorAlert";
 import { ServiceLinePreviewCard } from "@/components/ServiceLinePreviewCard";
 import { JoinDocumentUploadFields } from "@/components/JoinDocumentUploadFields";
 import { Button } from "@/components/ui/Button";
@@ -183,19 +184,7 @@ export function JoinButton({
             </div>
           ) : null}
 
-          {state?.error ? (
-            <div role="alert">
-              <p className="text-sm text-danger">{state.error}</p>
-              {state.error.toLowerCase().includes("active ticket") ? (
-                <a
-                  href="/me/tickets"
-                  className="mt-1 inline-block text-sm text-accent underline"
-                >
-                  View your active ticket →
-                </a>
-              ) : null}
-            </div>
-          ) : null}
+          {state?.error ? <JoinErrorAlert message={state.error} /> : null}
         </form>
       </Sheet>
     </>

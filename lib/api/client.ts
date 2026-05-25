@@ -1,3 +1,4 @@
+import { parseApiDetail } from "../api-errors";
 import { API_URL } from "../env";
 
 export class ApiError extends Error {
@@ -39,10 +40,8 @@ export function getWsUrl(path: string, token: string): string {
 async function readError(res: Response): Promise<string> {
   try {
     const data = (await res.json()) as { detail?: unknown };
-    if (typeof data.detail === "string") return data.detail;
-    if (Array.isArray(data.detail) && data.detail.length > 0) {
-      const first = data.detail[0] as { msg?: string };
-      if (first?.msg) return first.msg;
+    if (data.detail !== undefined) {
+      return parseApiDetail(data.detail, res.statusText || "Request failed");
     }
   } catch {
     // not JSON
