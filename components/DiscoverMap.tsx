@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProviderLogo } from "@/components/ProviderLogo";
 import { GOOGLE_MAPS_API_KEY } from "@/lib/env";
@@ -16,20 +16,32 @@ type Provider = components["schemas"]["ProviderDiscoveryPublic"] & {
   profile_image_url?: string | null;
 };
 
+type GoogleMap = {
+  fitBounds: (b: unknown, padding?: number) => void;
+  panTo: (p: { lat: number; lng: number }) => void;
+  setZoom: (z: number) => void;
+  getZoom: () => number | undefined;
+};
+
 type GoogleMaps = {
   maps: {
     Map: new (
       el: HTMLElement,
-      opts: { center: { lat: number; lng: number }; zoom: number; mapId?: string },
-    ) => { fitBounds: (b: unknown) => void; setCenter: (c: { lat: number; lng: number }) => void };
+      opts: { center: { lat: number; lng: number }; zoom: number },
+    ) => GoogleMap;
     LatLngBounds: new () => { extend: (p: { lat: number; lng: number }) => void };
     Marker: new (opts: {
       map: unknown;
       position: { lat: number; lng: number };
       title?: string;
     }) => { addListener: (ev: string, fn: () => void) => void };
-    InfoWindow: new (opts: { content: string }) => {
+    InfoWindow: new () => {
+      setContent: (html: string) => void;
       open: (opts: { anchor: unknown; map: unknown }) => void;
+      close: () => void;
+    };
+    event: {
+      addListenerOnce: (map: unknown, ev: string, fn: () => void) => void;
     };
   };
 };
@@ -66,6 +78,18 @@ function loadGoogleMaps(): Promise<GoogleMaps> {
   });
 }
 
+function infoContent(p: Provider) {
+  const wait = formatWait(p.estimated_wait_minutes);
+  return `
+    <div style="font-family:system-ui,sans-serif;max-width:240px;padding:2px 0">
+      <strong style="font-size:14px">${p.biz_name}</strong>
+      <p style="margin:6px 0 0;font-size:12px;color:#52525b">${wait} · ${p.active_tickets} in line</p>
+      <a href="/p/${p.slug}" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:#2563eb">View queue →</a>
+    </div>`;
+}
+
+const FOCUS_ZOOM = 15;
+
 export function DiscoverMap({
   providers,
   center,
@@ -78,13 +102,29 @@ export function DiscoverMap({
   onSelect: (id: string | null) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<InstanceType<GoogleMaps["maps"]["Map"]> | null>(null);
+  const mapRef = useRef<GoogleMap | null>(null);
   const markersRef = useRef<InstanceType<GoogleMaps["maps"]["Marker"]>[]>([]);
+  const infoWindowRef = useRef<InstanceType<GoogleMaps["maps"]["InfoWindow"]> | null>(
+    null,
+  );
+  const onSelectRef = useRef(onSelect);
   const [mapError, setMapError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
-  const mappable = providers.filter(
-    (p) => p.latitude != null && p.longitude != null,
+  onSelectRef.current = onSelect;
+
+  const mappable = useMemo(
+    () => providers.filter((p) => p.latitude != null && p.longitude != null),
+    [providers],
+  );
+
+  const providerKey = useMemo(
+    () =>
+      mappable
+        .map((p) => `${p.id}:${p.latitude}:${p.longitude}`)
+        .sort()
+        .join("|"),
+    [mappable],
   );
 
   useEffect(() => {
@@ -100,6 +140,7 @@ export function DiscoverMap({
           zoom: 13,
         });
         mapRef.current = map;
+        infoWindowRef.current = new google.maps.InfoWindow();
         setReady(true);
       })
       .catch((err) => {
@@ -116,7 +157,8 @@ export function DiscoverMap({
   useEffect(() => {
     const google = (window as Window & { google?: GoogleMaps }).google;
     const map = mapRef.current;
-    if (!ready || !google?.maps || !map) return;
+    const infoWindow = infoWindowRef.current;
+    if (!ready || !google?.maps || !map || !infoWindow) return;
 
     for (const m of markersRef.current) {
       (m as unknown as { setMap: (map: null) => void }).setMap(null);
@@ -135,23 +177,45 @@ export function DiscoverMap({
         title: p.biz_name,
       });
       marker.addListener("click", () => {
-        onSelect(p.id);
-        const wait = formatWait(p.estimated_wait_minutes);
-        const content = `
-          <div style="font-family:system-ui,sans-serif;max-width:220px;padding:4px">
-            <strong>${p.biz_name}</strong>
-            <p style="margin:6px 0 0;font-size:12px;color:#52525b">${wait} · ${p.active_tickets} in line</p>
-            <a href="/p/${p.slug}" style="font-size:12px;color:#2563eb">View queue →</a>
-          </div>`;
-        new google.maps.InfoWindow({ content }).open({ anchor: marker, map });
+        onSelectRef.current(p.id);
+        map.panTo(pos);
+        const zoom = map.getZoom();
+        if (zoom == null || zoom < FOCUS_ZOOM) map.setZoom(FOCUS_ZOOM);
+        infoWindow.setContent(infoContent(p));
+        infoWindow.open({ anchor: marker, map });
       });
       markersRef.current.push(marker);
     }
 
     if (mappable.length > 0) {
-      map.fitBounds(bounds);
+      map.fitBounds(bounds, 48);
+      google.maps.event.addListenerOnce(map, "bounds_changed", () => {
+        const z = map.getZoom();
+        if (z != null && z > FOCUS_ZOOM) map.setZoom(FOCUS_ZOOM);
+        if (z != null && z < 11) map.setZoom(11);
+      });
     }
-  }, [ready, mappable, center, onSelect]);
+  }, [ready, providerKey, center.lat, center.lng]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const infoWindow = infoWindowRef.current;
+    if (!ready || !map || !selectedId) return;
+
+    const p = mappable.find((x) => x.id === selectedId);
+    if (!p?.latitude || !p.longitude) return;
+
+    const pos = { lat: p.latitude, lng: p.longitude };
+    map.panTo(pos);
+    const zoom = map.getZoom();
+    if (zoom == null || zoom < FOCUS_ZOOM) map.setZoom(FOCUS_ZOOM);
+
+    const marker = markersRef.current[mappable.findIndex((x) => x.id === selectedId)];
+    if (infoWindow && marker) {
+      infoWindow.setContent(infoContent(p));
+      infoWindow.open({ anchor: marker, map });
+    }
+  }, [ready, selectedId, mappable]);
 
   const selected = mappable.find((p) => p.id === selectedId) ?? null;
 
@@ -175,7 +239,7 @@ export function DiscoverMap({
     <div className="flex min-w-0 flex-col gap-3">
       <div
         ref={containerRef}
-        className="h-[min(50dvh,320px)] w-full min-w-0 overflow-hidden rounded-2xl border border-border bg-zinc-100 sm:h-[min(55vh,400px)] lg:h-[min(70vh,560px)] lg:min-h-[400px]"
+        className="h-[min(62dvh,440px)] w-full min-w-0 overflow-hidden rounded-xl border-2 border-border bg-zinc-200 shadow-sm sm:h-[min(58vh,500px)] sm:rounded-2xl lg:h-[min(65vh,600px)]"
         aria-label="Map of nearby businesses"
       />
       {selected ? (
@@ -201,7 +265,7 @@ export function DiscoverMap({
           </div>
         </Link>
       ) : (
-        <p className="text-center text-xs text-muted">Tap a pin to see details</p>
+        <p className="text-center text-xs text-muted">Tap a pin for details</p>
       )}
     </div>
   );

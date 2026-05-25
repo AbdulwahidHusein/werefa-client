@@ -344,24 +344,13 @@ export function Discover() {
           </p>
 
           {view === "map" ? (
-            <div className="min-h-0 min-w-0 lg:grid lg:grid-cols-5 lg:gap-6">
-              <div className="hidden min-h-0 min-w-0 lg:col-span-2 lg:block">
-                <ul className="flex max-h-[calc(100dvh-10rem)] flex-col gap-2 overflow-y-auto overscroll-contain pr-1">
-                  {providers.map((p) => (
-                    <li key={p.id} className="min-w-0">
-                      <ProviderCard p={p} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="min-w-0 lg:col-span-3 lg:sticky lg:top-4 lg:self-start">
-                <DiscoverMap
-                  providers={providers}
-                  center={coords}
-                  selectedId={selectedId}
-                  onSelect={setSelectedId}
-                />
-              </div>
+            <div className="-mx-3 min-w-0 w-[calc(100%+1.5rem)] sm:-mx-4 sm:w-[calc(100%+2rem)]">
+              <DiscoverMap
+                providers={providers}
+                center={coords}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+              />
             </div>
           ) : (
             <ul className={RESULTS_GRID}>
